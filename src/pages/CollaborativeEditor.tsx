@@ -1,29 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Download, Users, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Save, Download, Users } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import RequirementsMonitorPanel from "@/components/editor/RequirementsMonitorPanel";
+import DraftWriterPanel from "@/components/editor/DraftWriterPanel";
 
 const CollaborativeEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [content, setContent] = useState(
-    "NTT DATA is pleased to submit our proposal for the Digital Transformation Initiative. With over 50 years of experience in enterprise technology solutions, we bring a comprehensive approach to modernizing your banking infrastructure.\n\nOur comprehensive approach includes detailed analysis of your current infrastructure, a phased migration strategy, and ongoing support to ensure success. We understand the critical importance of maintaining security and compliance throughout the transformation process.\n\nThe proposed solution leverages industry-leading cloud platforms, modern DevOps practices, and our proprietary frameworks developed over decades of enterprise transformation projects. Our team brings deep expertise in banking technology and regulatory compliance."
-  );
+  const [content, setContent] = useState("");
+  const [tender, setTender] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [complianceScore] = useState(75);
-  const [requirements] = useState([
-    { text: "Modernize legacy banking systems", covered: true },
-    { text: "Implement cloud-native architecture", covered: true },
-    { text: "Ensure regulatory compliance", covered: true },
-    { text: "Provide staff training", covered: false },
-    { text: "Migration timeline details", covered: false }
-  ]);
+  useEffect(() => {
+    if (id) {
+      fetchTender();
+    }
+  }, [id]);
+
+  const fetchTender = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tenders')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching tender:', error);
+        toast.error("Failed to load tender");
+        navigate("/");
+        return;
+      }
+
+      setTender(data);
+    } catch (error) {
+      console.error('Error in fetchTender:', error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSave = () => {
     toast.success("Draft saved successfully");
@@ -33,8 +56,22 @@ const CollaborativeEditor = () => {
     toast.success("Exporting draft as Word document...");
   };
 
-  const coveredCount = requirements.filter(r => r.covered).length;
-  const totalCount = requirements.length;
+  const handleContentGenerated = (generatedContent: string) => {
+    setContent(generatedContent);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero">
+        <DashboardHeader />
+        <main className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -51,13 +88,13 @@ const CollaborativeEditor = () => {
 
         <div className="mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Collaborative Editor</h1>
+            <h1 className="text-3xl font-bold mb-2">AI-Powered Collaborative Editor</h1>
             <div className="flex items-center gap-4">
               <Badge variant="outline" className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
-                2 users online
+                Editing
               </Badge>
-              <span className="text-sm text-muted-foreground">Last saved 2 minutes ago</span>
+              <Badge variant="secondary">Multi-Agent AI System Active</Badge>
             </div>
           </div>
           <div className="flex gap-3">
@@ -73,110 +110,36 @@ const CollaborativeEditor = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Editor */}
-          <div className="lg:col-span-2">
-            <Card className="shadow-elegant h-[600px]">
+          {/* Main Editor - 2 columns */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Response Draft</CardTitle>
               </CardHeader>
-              <CardContent className="h-[calc(100%-80px)]">
+              <CardContent className="h-[600px]">
                 <Textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className="h-full resize-none font-mono text-sm"
-                  placeholder="Start writing your response..."
+                  placeholder="Start writing your RFP response, or use the Draft Writer Agent to generate content..."
                 />
               </CardContent>
             </Card>
+
+            {/* Draft Writer Agent */}
+            <DraftWriterPanel
+              currentDraft={content}
+              tenderData={tender}
+              onContentGenerated={handleContentGenerated}
+            />
           </div>
 
-          {/* AI Analysis Sidebar */}
+          {/* Right Sidebar - Requirements Monitor */}
           <div className="space-y-6">
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="text-lg">AI Analysis</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">Compliance Score</span>
-                    <span className="text-2xl font-bold text-accent">{complianceScore}%</span>
-                  </div>
-                  <Progress value={complianceScore} className="h-2" />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Based on requirement coverage and evaluation criteria
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-semibold mb-3">
-                    Requirements Coverage ({coveredCount}/{totalCount})
-                  </h3>
-                  <div className="space-y-2">
-                    {requirements.map((req, index) => (
-                      <div key={index} className="flex items-start gap-2 text-sm">
-                        {req.covered ? (
-                          <CheckCircle className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
-                        ) : (
-                          <AlertCircle className="h-4 w-4 text-warning flex-shrink-0 mt-0.5" />
-                        )}
-                        <span className={req.covered ? "text-foreground" : "text-muted-foreground"}>
-                          {req.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="text-lg">Suggestions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
-                  <p className="text-sm font-medium mb-1">Missing: Staff Training</p>
-                  <p className="text-xs text-muted-foreground">
-                    Consider adding details about your training program and methodology
-                  </p>
-                </div>
-                <div className="p-3 bg-info/10 border border-info/20 rounded-lg">
-                  <p className="text-sm font-medium mb-1">Enhance: Timeline Details</p>
-                  <p className="text-xs text-muted-foreground">
-                    Include specific milestones and delivery dates for better evaluation score
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="text-lg">Active Collaborators</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                    JD
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">John Doe (You)</p>
-                    <p className="text-xs text-muted-foreground">Editing now</p>
-                  </div>
-                  <div className="w-2 h-2 rounded-full bg-success" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
-                    AS
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Alice Smith</p>
-                    <p className="text-xs text-muted-foreground">Viewing</p>
-                  </div>
-                  <div className="w-2 h-2 rounded-full bg-muted" />
-                </div>
-              </CardContent>
-            </Card>
+            <RequirementsMonitorPanel
+              draftContent={content}
+              tenderData={tender}
+            />
           </div>
         </div>
       </main>

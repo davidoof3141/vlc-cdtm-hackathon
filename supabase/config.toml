@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.generate-rfp-draft]
 verify_jwt = false
+
+[functions.requirements-monitor]
+verify_jwt = false
+
+[functions.draft-writer-agent]
+verify_jwt = false
