@@ -190,12 +190,6 @@ const TenderDetail = () => {
                 <CardTitle className="text-lg">What Client Needs</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                {tenderData.executiveSummary.ask && (
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2">Summary</h4>
-                    <p className="text-sm text-muted-foreground">{tenderData.executiveSummary.ask}</p>
-                  </div>
-                )}
                 {tenderData.executiveSummary.deliverables && tenderData.executiveSummary.deliverables.length > 0 && (
                   <div>
                     <h4 className="font-semibold text-sm mb-2">Key Deliverables</h4>
