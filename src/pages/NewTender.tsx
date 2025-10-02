@@ -7,6 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Upload, FileText, Sparkles, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import AIAnalysisCard from "@/components/tender/AIAnalysisCard";
+import GoNoGoDetails from "@/components/tender/GoNoGoDetails";
+import RequirementsMatrix from "@/components/tender/RequirementsMatrix";
+import EligibilityChecklist from "@/components/tender/EligibilityChecklist";
 import { toast } from "sonner";
 
 interface ExtractedData {
@@ -89,9 +93,134 @@ const NewTender = () => {
   };
 
   const handlePublish = () => {
+    // In real app, save to database
     toast.success("Tender published successfully");
-    navigate("/");
+    navigate("/tenders/1"); // Navigate to the tender detail page with same layout
   };
+
+  // Generate AI analysis data based on extracted RFP data
+  const generateAIAnalysis = () => {
+    return {
+      companyFitScore: 82,
+      confidence: 0.86,
+      capability: "High",
+      compliance: "Medium",
+      profitability: "Good",
+      deliveryWindow: "Q2-Q3",
+      whyFits: [
+        "Strong alignment with our digital transformation expertise",
+        "Available team capacity matches required skillset",
+        "Budget aligns with our typical project range",
+        "Timeline is achievable with current resources"
+      ],
+      risks: [
+        "Tight deadline may require resource reallocation",
+        "Some compliance gaps need to be addressed",
+        "Competing priority with internal initiatives"
+      ],
+      primaryDept: "Digital Platforms",
+      primaryDeptRationale: "Best alignment with project requirements and available expertise",
+      coInvolve: "Security Office"
+    };
+  };
+
+  const generateMockData = () => {
+    return {
+      goNoGo: {
+        deadline: extractedData.deadline || "2025-12-31",
+        priority: "High",
+        budget: "€420,000",
+        budgetType: "T&M w/ cap",
+        targetGM: "≥32%",
+        strategicContext: "Strategic opportunity",
+        pastWin: "Similar project (2024)",
+        status: "Open",
+        owner: "—"
+      },
+      executiveSummary: {
+        ask: extractedData.goals || "Project objectives to be defined",
+        priorities: "Timeline adherence, quality delivery, stakeholder satisfaction",
+        deliverables: extractedData.requirements?.split('\n').filter(r => r.trim()) || [
+          "Solution architecture and design",
+          "Implementation and deployment",
+          "Documentation and training",
+          "Post-launch support"
+        ],
+        constraints: extractedData.scope?.split('.').filter(c => c.trim()) || [
+          "Budget constraints",
+          "Timeline requirements",
+          "Compliance requirements"
+        ]
+      },
+      clientSnapshot: {
+        agency: extractedData.client || "Client Organization",
+        industry: "Technology Services",
+        size: "~1,000 FTE",
+        procurement: "Competitive tender",
+        mandate: extractedData.clientSummary || "Digital transformation initiative",
+        contact: "Project Manager (to be assigned)",
+        pastWork: [
+          "Previous successful collaboration",
+          "Strong working relationship",
+          "Proven track record"
+        ]
+      },
+      requirements: [
+        {
+          type: "MUST" as const,
+          description: "Core functionality delivery",
+          status: "Open" as const,
+          action: "Assign technical lead"
+        },
+        {
+          type: "MUST" as const,
+          description: "Compliance requirements",
+          status: "Gap" as const,
+          action: "Schedule compliance review"
+        },
+        {
+          type: "SHOULD" as const,
+          description: "Integration capabilities",
+          status: "Open" as const,
+          action: "Define integration architecture"
+        }
+      ],
+      eligibility: [
+        { name: "ISO 27001", status: "met" as const },
+        { name: "Company Size", status: "met" as const },
+        { name: "Industry Experience", status: "met" as const },
+        { name: "Financial Stability", status: "met" as const }
+      ],
+      evaluation: {
+        criteria: [
+          { name: "Technical Approach", weight: 35 },
+          { name: "Cost & Value", weight: 25 },
+          { name: "Delivery Timeline", weight: 20 },
+          { name: "Team Experience", weight: 20 }
+        ],
+        winThemes: [
+          "Deep technical expertise",
+          "Proven delivery methodology",
+          "Strong client relationships",
+          "Competitive pricing"
+        ],
+        gaps: [
+          "Need to finalize team composition",
+          "Compliance documentation to complete",
+          "Reference projects to select"
+        ],
+        attachments: [
+          "Company profile",
+          "Team CVs",
+          "Case studies",
+          "Compliance certificates"
+        ]
+      }
+    };
+  };
+
+  const mockData = generateMockData();
+  const aiAnalysis = generateAIAnalysis();
 
   if (step === "review") {
     return (
@@ -107,35 +236,84 @@ const NewTender = () => {
             Back to Upload
           </Button>
 
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Review Extracted Information</h1>
-              <p className="text-muted-foreground">
-                AI has extracted key information from your RFP. Review and edit as needed.
-              </p>
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold mb-2">
+                  {extractedData.client} — {extractedData.title}
+                </h1>
+                <p className="text-muted-foreground text-lg">
+                  Review extracted information and AI analysis before publishing
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => navigate("/")}>
+                  Cancel
+                </Button>
+                <Button onClick={handlePublish}>
+                  Publish & Share
+                </Button>
+              </div>
             </div>
+          </div>
 
-            <Card className="shadow-elegant">
+          <div className="space-y-6">
+            {/* AI Analysis Section */}
+            <AIAnalysisCard {...aiAnalysis} />
+
+            {/* Go/No-Go Details */}
+            <GoNoGoDetails {...mockData.goNoGo} />
+
+            {/* Executive Summary - Editable */}
+            <Card className="shadow-card">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-accent" />
-                  AI-Extracted Data
-                </CardTitle>
-                <CardDescription>
-                  All fields are editable. Click on any field to make changes.
-                </CardDescription>
+                <CardTitle>Executive Summary (RFP Ask)</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Tender Title</Label>
-                  <Input
-                    id="title"
-                    value={extractedData.title}
-                    onChange={(e) => setExtractedData({ ...extractedData, title: e.target.value })}
+                  <Label htmlFor="goals">Project Goals & Objectives</Label>
+                  <Textarea
+                    id="goals"
+                    value={extractedData.goals}
+                    onChange={(e) => setExtractedData({ ...extractedData, goals: e.target.value })}
+                    rows={3}
                   />
                 </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="requirements">Key Requirements</Label>
+                    <Textarea
+                      id="requirements"
+                      value={extractedData.requirements}
+                      onChange={(e) => setExtractedData({ ...extractedData, requirements: e.target.value })}
+                      rows={6}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="scope">Scope & Constraints</Label>
+                    <Textarea
+                      id="scope"
+                      value={extractedData.scope}
+                      onChange={(e) => setExtractedData({ ...extractedData, scope: e.target.value })}
+                      rows={6}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                <div className="grid grid-cols-2 gap-4">
+            {/* Two-Column: Client Snapshot & Requirements */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Client Snapshot - Editable */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="text-accent">AI</span>
+                    Client / Agency Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="client">Client Name</Label>
                     <Input
@@ -145,7 +323,16 @@ const NewTender = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="deadline">Deadline</Label>
+                    <Label htmlFor="clientSummary">Client Summary</Label>
+                    <Textarea
+                      id="clientSummary"
+                      value={extractedData.clientSummary}
+                      onChange={(e) => setExtractedData({ ...extractedData, clientSummary: e.target.value })}
+                      rows={4}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="deadline">Submission Deadline</Label>
                     <Input
                       id="deadline"
                       type="date"
@@ -153,68 +340,36 @@ const NewTender = () => {
                       onChange={(e) => setExtractedData({ ...extractedData, deadline: e.target.value })}
                     />
                   </div>
-                </div>
+                </CardContent>
+              </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="requirements">Requirements</Label>
-                  <Textarea
-                    id="requirements"
-                    value={extractedData.requirements}
-                    onChange={(e) => setExtractedData({ ...extractedData, requirements: e.target.value })}
-                    rows={4}
-                  />
-                </div>
+              {/* Requirements Preview */}
+              <RequirementsMatrix 
+                clientSnapshot={mockData.clientSnapshot}
+                requirements={mockData.requirements}
+              />
+            </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="goals">Goals</Label>
-                  <Textarea
-                    id="goals"
-                    value={extractedData.goals}
-                    onChange={(e) => setExtractedData({ ...extractedData, goals: e.target.value })}
-                    rows={3}
-                  />
-                </div>
+            {/* Eligibility Checklist */}
+            <EligibilityChecklist items={mockData.eligibility} />
 
+            {/* Evaluation Criteria */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>Evaluation Criteria</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="scope">Scope</Label>
-                  <Textarea
-                    id="scope"
-                    value={extractedData.scope}
-                    onChange={(e) => setExtractedData({ ...extractedData, scope: e.target.value })}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="evaluation">Evaluation Criteria</Label>
+                  <Label htmlFor="evaluation">Evaluation Criteria & Weights</Label>
                   <Textarea
                     id="evaluation"
                     value={extractedData.evaluation}
                     onChange={(e) => setExtractedData({ ...extractedData, evaluation: e.target.value })}
-                    rows={5}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="clientSummary">Client Summary</Label>
-                  <Textarea
-                    id="clientSummary"
-                    value={extractedData.clientSummary}
-                    onChange={(e) => setExtractedData({ ...extractedData, clientSummary: e.target.value })}
-                    rows={3}
+                    rows={6}
                   />
                 </div>
               </CardContent>
             </Card>
-
-            <div className="flex justify-end gap-4">
-              <Button variant="outline" onClick={() => navigate("/")}>
-                Cancel
-              </Button>
-              <Button onClick={handlePublish}>
-                Publish & Share
-              </Button>
-            </div>
           </div>
         </main>
       </div>
