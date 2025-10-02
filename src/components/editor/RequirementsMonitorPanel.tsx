@@ -25,10 +25,9 @@ interface Analysis {
 interface RequirementsMonitorPanelProps {
   draftContent: string;
   tenderData: any;
-  onRequirementClick?: (requirementText: string) => void;
 }
 
-const RequirementsMonitorPanel = ({ draftContent, tenderData, onRequirementClick }: RequirementsMonitorPanelProps) => {
+const RequirementsMonitorPanel = ({ draftContent, tenderData }: RequirementsMonitorPanelProps) => {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [autoMonitor, setAutoMonitor] = useState(true);
@@ -89,15 +88,13 @@ const RequirementsMonitorPanel = ({ draftContent, tenderData, onRequirementClick
     }
   };
 
-  const toggleRequirement = (index: number, requirementText: string) => {
+  const toggleRequirement = (index: number) => {
     setExpandedRequirements(prev => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
         newSet.delete(index);
       } else {
         newSet.add(index);
-        // Jump to the requirement in the editor
-        onRequirementClick?.(requirementText);
       }
       return newSet;
     });
@@ -167,7 +164,7 @@ const RequirementsMonitorPanel = ({ draftContent, tenderData, onRequirementClick
                   <div 
                     key={index} 
                     className={`group/req border rounded-lg overflow-hidden transition-all cursor-pointer ${getStatusColor(req.status)}`}
-                    onClick={() => toggleRequirement(index, req.requirement)}
+                    onClick={() => toggleRequirement(index)}
                   >
                     {/* Always visible header */}
                     <div className="p-3">
