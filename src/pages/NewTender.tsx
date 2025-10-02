@@ -391,18 +391,8 @@ const NewTender = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Verify & Enrich Section */}
-            <Card className="shadow-card border-accent/20">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-accent" />
-                  Verify & Enrich
-                </CardTitle>
-                <CardDescription>
-                  Review and enhance the extracted information before saving
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            {/* AI Analysis Section */}
+            <AIAnalysisCard {...aiAnalysis} />
 
             {/* Go/No-Go Details */}
             <GoNoGoDetails {...mockData.goNoGo} />
