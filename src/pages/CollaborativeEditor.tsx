@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Download, Users, Share2 } from "lucide-react";
+import { ArrowLeft, Save, Download, Users } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import RequirementsMonitorPanel from "@/components/editor/RequirementsMonitorPanel";
 import DraftWriterPanel from "@/components/editor/DraftWriterPanel";
-import ShareDialog from "@/components/tender/ShareDialog";
 import MarkdownIt from "markdown-it";
 import html2pdf from "html2pdf.js";
 
@@ -23,7 +22,6 @@ const CollaborativeEditor = () => {
   const [tender, setTender] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -149,10 +147,6 @@ const CollaborativeEditor = () => {
             </div>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setShareDialogOpen(true)}>
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
-            </Button>
             <Button variant="outline" onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" />
               Save Draft
@@ -198,12 +192,6 @@ const CollaborativeEditor = () => {
           </div>
         </div>
       </main>
-
-      <ShareDialog 
-        open={shareDialogOpen} 
-        onOpenChange={setShareDialogOpen} 
-        tenderId={id!} 
-      />
     </div>
   );
 };
