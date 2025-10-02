@@ -1,35 +1,169 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, Calendar, Building2, Target, CheckSquare, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, FileEdit, Download, Share2 } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import { Progress } from "@/components/ui/progress";
+import AIAnalysisCard from "@/components/tender/AIAnalysisCard";
+import GoNoGoDetails from "@/components/tender/GoNoGoDetails";
+import RequirementsMatrix from "@/components/tender/RequirementsMatrix";
+import EligibilityChecklist from "@/components/tender/EligibilityChecklist";
+import EvaluationStrategy from "@/components/tender/EvaluationStrategy";
 
 const TenderDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Mock data - in real app, fetch based on id
+  // Mock comprehensive tender data
   const tender = {
-    id,
-    title: "Digital Transformation Initiative",
-    client: "Global Finance Corp",
-    deadline: "2025-11-15",
-    status: "open",
-    description: "Comprehensive digital transformation project for enterprise banking systems",
-    requirements: "- Modernize legacy banking systems\n- Implement cloud-native architecture\n- Ensure regulatory compliance\n- Provide staff training",
-    goals: "Transform enterprise banking infrastructure to support digital-first customer experiences while maintaining security and compliance standards.",
-    scope: "Full-stack modernization including frontend applications, backend services, database migration, and integration with third-party fintech solutions.",
-    evaluation: "- Technical approach (30%)\n- Team experience (25%)\n- Cost effectiveness (20%)\n- Timeline feasibility (15%)\n- Innovation (10%)",
-    clientSummary: "Global Finance Corp is a leading international banking institution with over 50 years of experience. They prioritize security, compliance, and customer experience in all technology initiatives.",
-    timeline: [
-      { phase: "RFP Release", date: "2025-10-01", status: "completed" },
-      { phase: "Questions Due", date: "2025-10-15", status: "completed" },
-      { phase: "Draft Submission", date: "2025-11-01", status: "upcoming" },
-      { phase: "Final Submission", date: "2025-11-15", status: "upcoming" },
-    ]
+    client: "Federal Digital Services Agency",
+    projectName: "Citizen Services Portal",
+    subtitle: "Secure, accessible web application for citizen engagement and real-time collaboration",
+    
+    // AI Analysis data
+    aiAnalysis: {
+      companyFitScore: 82,
+      confidence: 0.86,
+      capability: "High",
+      compliance: "Medium",
+      profitability: "Good",
+      deliveryWindow: "Q2-Q3",
+      whyFits: [
+        "Strong track record in public sector digital transformation projects",
+        "Existing SOC2 compliance and GDPR expertise",
+        "Available team capacity matches required skillset",
+        "Previous successful delivery with client in 2024"
+      ],
+      risks: [
+        "Tight deadline may require resource reallocation",
+        "SOC2 Type II certification renewal needed before project start",
+        "Competing priority with internal Q2 initiatives"
+      ],
+      primaryDept: "Digital Platforms",
+      primaryDeptRationale: "Best alignment with cloud-native architecture requirements and existing public sector frameworks",
+      coInvolve: "Security Office"
+    },
+
+    // Go/No-Go Details
+    goNoGo: {
+      deadline: "Mar 15, 2025",
+      priority: "High",
+      budget: "€420,000",
+      budgetType: "T&M w/ cap",
+      targetGM: "≥32%",
+      strategicContext: "Tier-A client; strategic expansion opportunity",
+      pastWin: "Customer 360 (2024)",
+      status: "Open",
+      owner: "—"
+    },
+
+    // Executive Summary
+    executiveSummary: {
+      ask: "Build secure web application with real-time collaboration features, integrate with existing CRM infrastructure, provide comprehensive training and documentation, and deliver 6-month maintenance package.",
+      priorities: "Accessibility compliance, SOC2/GDPR adherence, Q3 rollout timeline",
+      deliverables: [
+        "Cloud-native web application with role-based access control",
+        "Real-time collaboration features (document sharing, chat, notifications)",
+        "Salesforce CRM integration via REST APIs",
+        "Comprehensive user training program and documentation",
+        "6-month post-launch maintenance and support"
+      ],
+      constraints: [
+        "Must comply with government accessibility standards (WCAG 2.1 AA)",
+        "SOC2 Type II and GDPR compliance required",
+        "Integration with existing authentication infrastructure",
+        "Deployment to government-approved cloud infrastructure"
+      ]
+    },
+
+    // Client Snapshot
+    clientSnapshot: {
+      agency: "Federal Digital Services Agency",
+      industry: "Public Sector (IT)",
+      size: "~2,300 FTE",
+      procurement: "Framework agreements, competitive tender",
+      mandate: "Digital transformation for citizen-facing services; focus on accessibility and security",
+      contact: "Sarah Mitchell (Director of Digital Innovation)",
+      pastWork: [
+        "Customer 360 Platform (2024) - €380K, successful delivery",
+        "Identity Management System (2023) - €290K, on-time completion",
+        "Citizen Portal MVP (2022) - €150K, exceeded expectations"
+      ]
+    },
+
+    // Key Requirements
+    requirements: [
+      {
+        type: "MUST" as const,
+        description: "Real-time collaboration features",
+        status: "Met" as const,
+        action: "Attach case study from Healthcare Collab project"
+      },
+      {
+        type: "MUST" as const,
+        description: "SOC2 Type II + GDPR compliance",
+        status: "Gap" as const,
+        action: "Create remediation task - cert renewal by Feb 2025"
+      },
+      {
+        type: "MUST" as const,
+        description: "Salesforce CRM integration",
+        status: "Open" as const,
+        action: "Assign integration specialist owner"
+      },
+      {
+        type: "SHOULD" as const,
+        description: "WCAG 2.1 AA accessibility",
+        status: "Met" as const,
+        action: "Reference Public Sector Portal case study"
+      },
+      {
+        type: "SHOULD" as const,
+        description: "Multi-language support (EN, FR, DE)",
+        status: "Open" as const,
+        action: "Assess localization framework options"
+      },
+      {
+        type: "NICE" as const,
+        description: "Mobile-responsive design",
+        status: "Met" as const
+      }
+    ],
+
+    // Eligibility
+    eligibility: [
+      { name: "ISO 27001", status: "met" as const },
+      { name: "SOC2 Type II", status: "expiring" as const, action: "Schedule renewal" },
+      { name: "GDPR DPA", status: "met" as const },
+      { name: "Size ≥100", status: "met" as const }
+    ],
+
+    // Evaluation Criteria
+    evaluation: {
+      criteria: [
+        { name: "Technical Approach", weight: 35 },
+        { name: "Cost & Value", weight: 25 },
+        { name: "Delivery Timeline", weight: 20 },
+        { name: "Security & Compliance", weight: 20 }
+      ],
+      winThemes: [
+        "Proven public sector expertise",
+        "Agile delivery methodology",
+        "Security-first architecture",
+        "Client relationship strength"
+      ],
+      gaps: [
+        "SOC2 certification renewal",
+        "Detailed Salesforce integration plan",
+        "Resource allocation conflicts"
+      ],
+      attachments: [
+        "Company profile and certifications",
+        "Team CVs and case studies",
+        "Technical architecture proposal",
+        "Security compliance documentation"
+      ]
+    }
   };
 
   return (
@@ -45,202 +179,90 @@ const TenderDetail = () => {
           Back to Dashboard
         </Button>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="shadow-elegant">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-2xl mb-2">{tender.title}</CardTitle>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Building2 className="h-4 w-4" />
-                        {tender.client}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        Due: {new Date(tender.deadline).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="border-info text-info">Open</Badge>
-                </div>
-              </CardHeader>
-            </Card>
-
-            <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="w-full justify-start">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="requirements">Requirements</TabsTrigger>
-                <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Description
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{tender.description}</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="h-5 w-5" />
-                      Goals & Objectives
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{tender.goals}</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5" />
-                      Client Summary
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{tender.clientSummary}</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="requirements" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CheckSquare className="h-5 w-5" />
-                      Key Requirements
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="whitespace-pre-line text-muted-foreground">
-                      {tender.requirements}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Scope of Work</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{tender.scope}</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Evaluation Criteria</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="whitespace-pre-line text-muted-foreground">
-                      {tender.evaluation}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="timeline" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Project Timeline
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {tender.timeline.map((item, index) => (
-                        <div key={index} className="flex items-center gap-4">
-                          <div className={`w-3 h-3 rounded-full ${
-                            item.status === 'completed' ? 'bg-success' : 'bg-muted'
-                          }`} />
-                          <div className="flex-1">
-                            <p className="font-medium">{item.phase}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(item.date).toLocaleDateString('en-US', { 
-                                month: 'long', 
-                                day: 'numeric', 
-                                year: 'numeric' 
-                              })}
-                            </p>
-                          </div>
-                          <Badge variant={item.status === 'completed' ? 'default' : 'outline'}>
-                            {item.status}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold mb-2">
+                {tender.client} — {tender.projectName}
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Project: {tender.projectName} — {tender.subtitle}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={() => navigate(`/tenders/${id}/draft`)}>
+                <FileEdit className="mr-2 h-4 w-4" />
+                Draft Proposal
+              </Button>
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+              <Button variant="outline">
+                <Share2 className="mr-2 h-4 w-4" />
+                Share
+              </Button>
+            </div>
           </div>
+        </div>
 
-          {/* Sidebar Actions */}
-          <div className="space-y-6">
-            <Card className="shadow-elegant">
-              <CardHeader>
-                <CardTitle className="text-lg">Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  className="w-full justify-start" 
-                  variant="default"
-                  onClick={() => navigate(`/tenders/${id}/draft`)}
-                >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Create Draft Response
-                </Button>
-                <Button 
-                  className="w-full justify-start" 
-                  variant="outline"
-                  onClick={() => navigate(`/tenders/${id}/editor`)}
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  Collaborative Editor
-                </Button>
-              </CardContent>
-            </Card>
+        <div className="space-y-6">
+          {/* AI Analysis Section */}
+          <AIAnalysisCard {...tender.aiAnalysis} />
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Team Members</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                      JD
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">John Doe</p>
-                      <p className="text-xs text-muted-foreground">Lead</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-medium">
-                      AS
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Alice Smith</p>
-                      <p className="text-xs text-muted-foreground">Writer</p>
-                    </div>
-                  </div>
+          {/* Go/No-Go Details */}
+          <GoNoGoDetails {...tender.goNoGo} />
+
+          {/* Executive Summary */}
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle>Executive Summary (RFP Ask)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">{tender.executiveSummary.ask}</p>
+              <div>
+                <h3 className="font-semibold text-sm mb-2">Priorities</h3>
+                <p className="text-sm text-muted-foreground">{tender.executiveSummary.priorities}</p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold text-sm mb-2">Deliverables</h3>
+                  <ul className="space-y-1">
+                    {tender.executiveSummary.deliverables.map((item, index) => (
+                      <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <div>
+                  <h3 className="font-semibold text-sm mb-2">Constraints</h3>
+                  <ul className="space-y-1">
+                    {tender.executiveSummary.constraints.map((item, index) => (
+                      <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-warning mt-1.5 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Two-Column: Client Snapshot & Requirements */}
+          <RequirementsMatrix 
+            clientSnapshot={tender.clientSnapshot}
+            requirements={tender.requirements}
+          />
+
+          {/* Eligibility Checklist */}
+          <EligibilityChecklist items={tender.eligibility} />
+
+          {/* Evaluation Criteria & Strategy */}
+          <EvaluationStrategy {...tender.evaluation} />
         </div>
       </main>
     </div>
