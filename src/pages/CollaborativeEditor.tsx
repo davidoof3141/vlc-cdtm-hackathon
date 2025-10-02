@@ -172,7 +172,7 @@ const CollaborativeEditor = () => {
               <CardHeader>
                 <CardTitle>Response Draft</CardTitle>
               </CardHeader>
-              <CardContent className="h-[600px]">
+              <CardContent className="h-[700px]">
                 <Textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
