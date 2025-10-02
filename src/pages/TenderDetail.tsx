@@ -161,10 +161,10 @@ const TenderDetail = () => {
             </p>
           </div>
             <div className="flex gap-3">
-              <Button onClick={() => navigate(`/tenders/${id}/draft`)}>
-                <FileEdit className="mr-2 h-4 w-4" />
-                Draft Proposal
-              </Button>
+            <Button onClick={() => navigate(`/tenders/${id}/editor`)}>
+              <FileEdit className="mr-2 h-4 w-4" />
+              Draft Proposal
+            </Button>
               <Button variant="outline">
                 <Download className="mr-2 h-4 w-4" />
                 Export
