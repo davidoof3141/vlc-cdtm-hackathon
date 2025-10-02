@@ -161,6 +161,13 @@ const CollaborativeEditor = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Editor - 2 columns */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Draft Writer Agent */}
+            <DraftWriterPanel
+              currentDraft={content}
+              tenderData={tender}
+              onContentGenerated={handleContentGenerated}
+            />
+
             <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Response Draft</CardTitle>
@@ -174,13 +181,6 @@ const CollaborativeEditor = () => {
                 />
               </CardContent>
             </Card>
-
-            {/* Draft Writer Agent */}
-            <DraftWriterPanel
-              currentDraft={content}
-              tenderData={tender}
-              onContentGenerated={handleContentGenerated}
-            />
           </div>
 
           {/* Right Sidebar - Requirements Monitor */}
