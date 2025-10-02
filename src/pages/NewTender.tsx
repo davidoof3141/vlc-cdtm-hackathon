@@ -370,9 +370,6 @@ const NewTender = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Go/No-Go Details */}
-            <GoNoGoDetails {...mockData.goNoGo} />
-
             {/* Three Column Overview */}
             <div className="grid md:grid-cols-3 gap-6">
               {/* What Client Needs */}
@@ -381,11 +378,11 @@ const NewTender = () => {
                   <CardTitle className="text-lg">What Client Needs</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                  {mockData.executiveSummary.deliverables && mockData.executiveSummary.deliverables.length > 0 && (
+                  {extractedData.goals && (
                     <div>
-                      <h4 className="font-semibold text-sm mb-2">Key Deliverables</h4>
+                      <h4 className="font-semibold text-sm mb-2">Project Goals</h4>
                       <ul className="space-y-1.5">
-                        {mockData.executiveSummary.deliverables.map((item: string, index: number) => (
+                        {(Array.isArray(extractedData.goals) ? extractedData.goals : extractedData.goals.split('\n').filter((line: string) => line.trim())).map((item: string, index: number) => (
                           <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
                             {item}
@@ -396,15 +393,8 @@ const NewTender = () => {
                   )}
                   {extractedData.scope && (
                     <div>
-                      <h4 className="font-semibold text-sm mb-2">Desired Structure</h4>
-                      <ul className="space-y-1.5">
-                        {extractedData.scope.split('\n').filter((line: string) => line.trim()).map((item: string, index: number) => (
-                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-                            {item.trim()}
-                          </li>
-                        ))}
-                      </ul>
+                      <h4 className="font-semibold text-sm mb-2">Scope of Work</h4>
+                      <p className="text-sm text-muted-foreground">{extractedData.scope}</p>
                     </div>
                   )}
                 </CardContent>
@@ -443,7 +433,7 @@ const NewTender = () => {
                   {extractedData.deadline && (
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground">Deadline</p>
-                      <p className="text-sm">{new Date(extractedData.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      <p className="text-sm">{extractedData.deadline !== "Not specified" && extractedData.deadline !== "Unknown" ? new Date(extractedData.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "TBD"}</p>
                     </div>
                   )}
                 </CardContent>
@@ -455,25 +445,17 @@ const NewTender = () => {
                   <CardTitle className="text-lg">Customer Requirements</CardTitle>
                 </CardHeader>
                 <CardContent className="max-h-96 overflow-y-auto">
-                  {mockData.requirements.length > 0 ? (
-                    <ul className="space-y-3">
-                      {mockData.requirements.slice(0, 3).map((req: any, index: number) => (
-                        <li key={index} className="flex items-start gap-3">
-                          <Checkbox 
-                            checked={req.status === "Open"}
-                            className="mt-1"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-start gap-2">
-                              <Badge variant="outline" className="text-xs">{req.type}</Badge>
-                              <span className="text-sm text-muted-foreground">{req.description}</span>
-                            </div>
-                          </div>
+                  {extractedData.requirements ? (
+                    <ul className="space-y-2">
+                      {(Array.isArray(extractedData.requirements) ? extractedData.requirements : extractedData.requirements.split('\n').filter((line: string) => line.trim())).slice(0, 5).map((req: string, index: number) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                          <span className="text-sm text-muted-foreground">{req}</span>
                         </li>
                       ))}
-                      {mockData.requirements.length > 3 && (
-                        <li className="text-sm text-primary italic pl-7">
-                          {mockData.requirements.length - 3} more requirements...
+                      {(Array.isArray(extractedData.requirements) ? extractedData.requirements.length : extractedData.requirements.split('\n').filter((line: string) => line.trim()).length) > 5 && (
+                        <li className="text-sm text-primary italic pl-4">
+                          {(Array.isArray(extractedData.requirements) ? extractedData.requirements.length : extractedData.requirements.split('\n').filter((line: string) => line.trim()).length) - 5} more requirements...
                         </li>
                       )}
                     </ul>
@@ -484,9 +466,6 @@ const NewTender = () => {
               </Card>
             </div>
 
-            {/* AI Analysis Section */}
-            <AIAnalysisCard {...aiAnalysis} />
-
             {/* Executive Summary */}
             <Card className="shadow-card">
               <CardHeader>
@@ -494,44 +473,30 @@ const NewTender = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">{extractedData.goals}</p>
-                <div className="grid md:grid-cols-2 gap-4">
+                {extractedData.scope && (
                   <div>
-                    <h3 className="font-semibold text-sm mb-2">Deliverables</h3>
-                    <ul className="space-y-1">
-                      {mockData.executiveSummary.deliverables.map((item: string, index: number) => (
-                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
+                    <h4 className="font-semibold mb-2">Scope of Work</h4>
+                    <p className="text-muted-foreground text-sm">{extractedData.scope}</p>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-sm mb-2">Constraints</h3>
-                    <ul className="space-y-1">
-                      {mockData.executiveSummary.constraints.map((item: string, index: number) => (
-                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-warning mt-1.5 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Requirements Matrix */}
-            <RequirementsMatrix 
-              clientSnapshot={mockData.clientSnapshot}
-              requirements={mockData.requirements}
-            />
-
-            {/* Eligibility Checklist */}
-            <EligibilityChecklist items={mockData.eligibility} />
-
-            {/* Evaluation Criteria & Strategy */}
-            <EvaluationStrategy {...mockData.evaluation} />
+            {/* Evaluation Criteria */}
+            {extractedData.evaluation && (
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Evaluation Criteria</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-muted-foreground text-sm whitespace-pre-line">
+                    {Array.isArray(extractedData.evaluation) 
+                      ? extractedData.evaluation.join('\n') 
+                      : extractedData.evaluation}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </main>
       </div>
