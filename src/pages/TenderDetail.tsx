@@ -188,7 +188,7 @@ const TenderDetail = () => {
               <CardHeader>
                 <CardTitle className="text-lg">What Client Needs</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 max-h-96 overflow-y-auto">
                 {tenderData.executiveSummary.ask && (
                   <div>
                     <h4 className="font-semibold text-sm mb-2">Summary</h4>
@@ -235,7 +235,7 @@ const TenderDetail = () => {
               <CardHeader>
                 <CardTitle className="text-lg">Who is the Client</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 max-h-96 overflow-y-auto">
                 {tenderData.clientSnapshot.agency && (
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground">Agency</p>
@@ -268,7 +268,7 @@ const TenderDetail = () => {
               <CardHeader>
                 <CardTitle className="text-lg">Customer Requirements</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="max-h-96 overflow-y-auto">
                 {tenderData.requirements.length > 0 ? (
                   <ul className="space-y-3">
                     {tenderData.requirements.slice(0, 6).map((req: any, index: number) => (
