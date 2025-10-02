@@ -33,6 +33,29 @@ const RequirementsMonitorPanel = ({ draftContent, tenderData }: RequirementsMoni
   const [autoMonitor, setAutoMonitor] = useState(true);
   const [expandedRequirements, setExpandedRequirements] = useState<Set<number>>(new Set());
 
+  // Initialize with empty requirements from tender data
+  useEffect(() => {
+    if (tenderData?.requirements && !analysis) {
+      const requirements = Array.isArray(tenderData.requirements) 
+        ? tenderData.requirements 
+        : JSON.parse(tenderData.requirements || '[]');
+      
+      const initialAnalysis: Analysis = {
+        overallScore: 0,
+        summary: "Waiting for content to analyze requirements...",
+        requirements: requirements.map((req: string) => ({
+          requirement: req,
+          status: "missing" as const,
+          coverage: 0,
+          feedback: "No content yet to evaluate this requirement",
+          suggestions: "Start writing to get AI-powered suggestions"
+        })),
+        nextSteps: ["Begin writing your draft to receive real-time requirement analysis"]
+      };
+      setAnalysis(initialAnalysis);
+    }
+  }, [tenderData]);
+
   useEffect(() => {
     if (autoMonitor && draftContent) {
       const debounceTimer = setTimeout(() => {
@@ -225,18 +248,9 @@ const RequirementsMonitorPanel = ({ draftContent, tenderData }: RequirementsMoni
           </>
         )}
 
-        {analyzing && !analysis && (
+        {analyzing && (
           <div className="flex items-center justify-center py-8">
             <RefreshCw className="h-6 w-6 animate-spin text-accent" />
-          </div>
-        )}
-
-        {!analysis && !analyzing && (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <Sparkles className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Start writing to get AI-powered requirement analysis
-            </p>
           </div>
         )}
       </CardContent>
