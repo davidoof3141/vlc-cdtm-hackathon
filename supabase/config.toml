@@ -1,1 +1,10 @@
 project_id = "yvhkthweyxpezkusjuak"
+
+[functions.extract-rfp]
+verify_jwt = false
+
+[functions.seed-sample-tenders]
+verify_jwt = false
+
+[functions.generate-rfp-draft]
+verify_jwt = false
