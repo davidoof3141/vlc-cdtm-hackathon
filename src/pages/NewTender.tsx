@@ -21,12 +21,15 @@ import { supabase } from "@/integrations/supabase/client";
 interface ExtractedData {
   title: string;
   client: string;
+  client_type?: string;
+  client_revenue?: string;
+  client_summary: string;
+  agency?: string;
   deadline: string;
-  requirements: string;
-  goals: string;
+  requirements: string | string[];
+  goals: string | string[];
   scope: string;
-  evaluation: string;
-  clientSummary: string;
+  evaluation: string | string[];
 }
 
 const NewTender = () => {
@@ -37,12 +40,15 @@ const NewTender = () => {
   const [extractedData, setExtractedData] = useState<ExtractedData>({
     title: "",
     client: "",
+    client_type: "",
+    client_revenue: "",
+    client_summary: "",
+    agency: "",
     deadline: "",
     requirements: "",
     goals: "",
     scope: "",
-    evaluation: "",
-    clientSummary: ""
+    evaluation: ""
   });
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,6 +114,26 @@ const NewTender = () => {
         return;
       }
 
+      // Helper function to convert arrays to strings
+      const arrayToString = (value: string | string[] | undefined): string => {
+        if (!value) return "";
+        if (Array.isArray(value)) {
+          return value.join("\n");
+        }
+        return value;
+      };
+
+      // Helper function to handle deadline - set to null if invalid
+      const parseDeadline = (deadline: string): string | null => {
+        if (!deadline || 
+            deadline.toLowerCase() === "unknown" || 
+            deadline.toLowerCase() === "n/a" || 
+            deadline.toLowerCase() === "not specified") {
+          return null;
+        }
+        return deadline;
+      };
+
       // Prepare tender data for database using only extracted data
       const tenderData = {
         user_id: user.id,
@@ -115,20 +141,22 @@ const NewTender = () => {
         // Basic Information
         title: extractedData.title,
         client_name: extractedData.client,
-        deadline: extractedData.deadline,
-        status: 'open',
-        priority: 'medium',
+        deadline: parseDeadline(extractedData.deadline),
+        status: 'open' as const,
+        priority: 'medium' as const,
         
         // Extracted RFP Data
-        requirements: extractedData.requirements,
-        goals: extractedData.goals,
-        scope: extractedData.scope,
-        evaluation_criteria: extractedData.evaluation,
-        client_summary: extractedData.clientSummary,
+        requirements: arrayToString(extractedData.requirements),
+        goals: arrayToString(extractedData.goals),
+        scope: extractedData.scope || "",
+        evaluation_criteria: arrayToString(extractedData.evaluation),
+        client_summary: extractedData.client_summary || "",
         
         // Metadata
         progress: 0
       };
+
+      console.log('Saving tender with data:', tenderData);
 
       // Insert into database
       const { data: insertedTender, error } = await supabase
@@ -240,7 +268,7 @@ const NewTender = () => {
         industry: "Technology Services",
         size: "~1,000 FTE",
         procurement: "Competitive tender",
-        mandate: extractedData.clientSummary || "Digital transformation initiative",
+        mandate: extractedData.client_summary || "Digital transformation initiative",
         contact: "Project Manager (to be assigned)",
         pastWork: [
           "Previous successful collaboration",
@@ -394,10 +422,22 @@ const NewTender = () => {
                       <p className="text-sm">{extractedData.client}</p>
                     </div>
                   )}
-                  {extractedData.clientSummary && (
+                  {extractedData.client_summary && (
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground">Summary</p>
-                      <p className="text-sm">{extractedData.clientSummary}</p>
+                      <p className="text-sm">{extractedData.client_summary}</p>
+                    </div>
+                  )}
+                  {extractedData.agency && extractedData.agency !== "N/A" && extractedData.agency !== "Not specified" && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground">Agency</p>
+                      <p className="text-sm">{extractedData.agency}</p>
+                    </div>
+                  )}
+                  {extractedData.client_type && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground">Type</p>
+                      <p className="text-sm">{extractedData.client_type}</p>
                     </div>
                   )}
                   {extractedData.deadline && (
