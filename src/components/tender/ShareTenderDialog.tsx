@@ -38,14 +38,25 @@ const ShareTenderDialog = ({ tenderId, variant = "outline", size = "default" }: 
           id,
           user_id,
           role,
-          created_at
+          created_at,
+          profiles:user_id (
+            email
+          )
         `)
         .eq('tender_id', tenderId);
 
       if (error) throw error;
 
-      // Fetch user emails from auth.users (we'll need to create a helper function or use profiles)
-      setCollaborators(data || []);
+      // Map data to include email from profiles
+      const collaboratorsWithEmail = (data || []).map(collab => ({
+        id: collab.id,
+        user_id: collab.user_id,
+        role: collab.role,
+        created_at: collab.created_at,
+        email: (collab.profiles as any)?.email || 'Unknown'
+      }));
+      
+      setCollaborators(collaboratorsWithEmail);
     } catch (error) {
       console.error('Error fetching collaborators:', error);
       toast.error("Failed to load collaborators");
@@ -184,8 +195,8 @@ const ShareTenderDialog = ({ tenderId, variant = "outline", size = "default" }: 
                           {collab.user_id.substring(0, 2).toUpperCase()}
                         </span>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium">{collab.user_id}</p>
+                       <div>
+                        <p className="text-sm font-medium">{collab.email}</p>
                         <Badge variant="outline" className="text-xs">{collab.role}</Badge>
                       </div>
                     </div>
