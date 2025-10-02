@@ -178,11 +178,11 @@ const TenderDetail = () => {
         </div>
 
         <div className="space-y-6">
-          {/* AI Analysis Section */}
-          <AIAnalysisCard {...tenderData.aiAnalysis} />
-
           {/* Go/No-Go Details */}
           <GoNoGoDetails {...tenderData.goNoGo} />
+
+          {/* AI Analysis Section */}
+          <AIAnalysisCard {...tenderData.aiAnalysis} />
 
           {/* Executive Summary */}
           <Card className="shadow-card">
