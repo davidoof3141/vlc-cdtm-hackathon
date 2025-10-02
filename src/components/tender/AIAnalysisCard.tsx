@@ -2,7 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
+import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, Send, Forward, HelpCircle, X } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 interface AIAnalysisProps {
   companyFitScore: number;
@@ -31,10 +33,30 @@ const AIAnalysisCard = ({
   primaryDeptRationale,
   coInvolve
 }: AIAnalysisProps) => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+
   const getFitLabel = (score: number) => {
     if (score >= 80) return "Good";
     if (score >= 60) return "Moderate";
     return "Low";
+  };
+
+  const handleProceed = () => {
+    navigate(`/tenders/${id}/editor`);
+    toast.success("Creating pursuit...");
+  };
+
+  const handleForward = () => {
+    toast.success(`Forwarded to ${primaryDept}`);
+  };
+
+  const handleClarification = () => {
+    window.location.href = `mailto:?subject=Clarification Request for Tender&body=Dear Team,%0D%0A%0D%0AI would like to request clarification on the following tender:%0D%0A%0D%0ATender: [Tender Title]%0D%0A%0D%0APlease provide additional information on:%0D%0A- [Your question here]`;
+  };
+
+  const handleDecline = () => {
+    toast.success("Decline note drafted");
   };
 
   return (
@@ -140,17 +162,21 @@ const AIAnalysisCard = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Button className="w-full justify-start" size="lg">
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleProceed} size="sm">
+              <Send className="mr-2 h-4 w-4" />
               Proceed (Create pursuit)
             </Button>
-            <Button variant="outline" className="w-full justify-start" size="lg">
+            <Button onClick={handleForward} variant="outline" size="sm">
+              <Forward className="mr-2 h-4 w-4" />
               Forward to {primaryDept}
             </Button>
-            <Button variant="outline" className="w-full justify-start" size="lg">
+            <Button onClick={handleClarification} variant="outline" size="sm">
+              <HelpCircle className="mr-2 h-4 w-4" />
               Request clarifications
             </Button>
-            <Button variant="outline" className="w-full justify-start text-destructive" size="lg">
+            <Button onClick={handleDecline} variant="outline" size="sm" className="text-destructive hover:text-destructive">
+              <X className="mr-2 h-4 w-4" />
               Decline & auto-draft note
             </Button>
           </div>
