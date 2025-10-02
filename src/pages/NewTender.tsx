@@ -21,15 +21,12 @@ import { supabase } from "@/integrations/supabase/client";
 interface ExtractedData {
   title: string;
   client: string;
-  client_type?: string;
-  client_revenue?: string;
-  client_summary: string;
-  agency?: string;
   deadline: string;
-  requirements: string | string[];
-  goals: string | string[];
+  requirements: string;
+  goals: string;
   scope: string;
-  evaluation: string | string[];
+  evaluation: string;
+  clientSummary: string;
 }
 
 const NewTender = () => {
@@ -40,15 +37,12 @@ const NewTender = () => {
   const [extractedData, setExtractedData] = useState<ExtractedData>({
     title: "",
     client: "",
-    client_type: "",
-    client_revenue: "",
-    client_summary: "",
-    agency: "",
     deadline: "",
     requirements: "",
     goals: "",
     scope: "",
-    evaluation: ""
+    evaluation: "",
+    clientSummary: ""
   });
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,49 +108,52 @@ const NewTender = () => {
         return;
       }
 
-      // Helper function to convert arrays to strings
-      const arrayToString = (value: string | string[] | undefined): string => {
-        if (!value) return "";
-        if (Array.isArray(value)) {
-          return value.join("\n");
-        }
-        return value;
-      };
+      const mockData = generateMockData();
+      const aiAnalysis = generateAIAnalysis();
 
-      // Helper function to handle deadline - set to null if invalid
-      const parseDeadline = (deadline: string): string | null => {
-        if (!deadline || 
-            deadline.toLowerCase() === "unknown" || 
-            deadline.toLowerCase() === "n/a" || 
-            deadline.toLowerCase() === "not specified") {
-          return null;
-        }
-        return deadline;
-      };
-
-      // Prepare tender data for database using only extracted data
+      // Prepare tender data for database
       const tenderData = {
         user_id: user.id,
         
         // Basic Information
         title: extractedData.title,
         client_name: extractedData.client,
-        deadline: parseDeadline(extractedData.deadline),
-        status: 'open' as const,
-        priority: 'medium' as const,
+        deadline: extractedData.deadline,
+        status: 'open',
+        priority: 'high',
         
         // Extracted RFP Data
-        requirements: arrayToString(extractedData.requirements),
-        goals: arrayToString(extractedData.goals),
-        scope: extractedData.scope || "",
-        evaluation_criteria: arrayToString(extractedData.evaluation),
-        client_summary: extractedData.client_summary || "",
+        requirements: extractedData.requirements,
+        goals: extractedData.goals,
+        scope: extractedData.scope,
+        evaluation_criteria: extractedData.evaluation,
+        client_summary: extractedData.clientSummary,
+        
+        // AI Analysis Data
+        company_fit_score: aiAnalysis.companyFitScore,
+        ai_confidence: aiAnalysis.confidence,
+        capability: aiAnalysis.capability,
+        compliance: aiAnalysis.compliance,
+        profitability: aiAnalysis.profitability,
+        delivery_window: aiAnalysis.deliveryWindow,
+        why_fits: aiAnalysis.whyFits,
+        risks: aiAnalysis.risks,
+        primary_dept: aiAnalysis.primaryDept,
+        primary_dept_rationale: aiAnalysis.primaryDeptRationale,
+        co_involve: aiAnalysis.coInvolve,
+        
+        // Additional Data
+        budget: mockData.goNoGo.budget,
+        budget_type: mockData.goNoGo.budgetType,
+        target_gm: mockData.goNoGo.targetGM,
+        deliverables: mockData.executiveSummary.deliverables,
+        constraints: mockData.executiveSummary.constraints,
+        eligibility_items: mockData.eligibility,
+        evaluation_weights: mockData.evaluation.criteria,
         
         // Metadata
         progress: 0
       };
-
-      console.log('Saving tender with data:', tenderData);
 
       // Insert into database
       const { data: insertedTender, error } = await supabase
@@ -268,7 +265,7 @@ const NewTender = () => {
         industry: "Technology Services",
         size: "~1,000 FTE",
         procurement: "Competitive tender",
-        mandate: extractedData.client_summary || "Digital transformation initiative",
+        mandate: extractedData.clientSummary || "Digital transformation initiative",
         contact: "Project Manager (to be assigned)",
         pastWork: [
           "Previous successful collaboration",
@@ -370,6 +367,9 @@ const NewTender = () => {
           </div>
 
           <div className="space-y-6">
+            {/* Go/No-Go Details */}
+            <GoNoGoDetails {...mockData.goNoGo} />
+
             {/* Three Column Overview */}
             <div className="grid md:grid-cols-3 gap-6">
               {/* What Client Needs */}
@@ -378,11 +378,11 @@ const NewTender = () => {
                   <CardTitle className="text-lg">What Client Needs</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                  {extractedData.goals && (
+                  {mockData.executiveSummary.deliverables && mockData.executiveSummary.deliverables.length > 0 && (
                     <div>
-                      <h4 className="font-semibold text-sm mb-2">Project Goals</h4>
+                      <h4 className="font-semibold text-sm mb-2">Key Deliverables</h4>
                       <ul className="space-y-1.5">
-                        {(Array.isArray(extractedData.goals) ? extractedData.goals : extractedData.goals.split('\n').filter((line: string) => line.trim())).map((item: string, index: number) => (
+                        {mockData.executiveSummary.deliverables.map((item: string, index: number) => (
                           <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
                             {item}
@@ -393,8 +393,15 @@ const NewTender = () => {
                   )}
                   {extractedData.scope && (
                     <div>
-                      <h4 className="font-semibold text-sm mb-2">Scope of Work</h4>
-                      <p className="text-sm text-muted-foreground">{extractedData.scope}</p>
+                      <h4 className="font-semibold text-sm mb-2">Desired Structure</h4>
+                      <ul className="space-y-1.5">
+                        {extractedData.scope.split('\n').filter((line: string) => line.trim()).map((item: string, index: number) => (
+                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+                            {item.trim()}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </CardContent>
@@ -412,28 +419,16 @@ const NewTender = () => {
                       <p className="text-sm">{extractedData.client}</p>
                     </div>
                   )}
-                  {extractedData.client_summary && (
+                  {extractedData.clientSummary && (
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground">Summary</p>
-                      <p className="text-sm">{extractedData.client_summary}</p>
-                    </div>
-                  )}
-                  {extractedData.agency && extractedData.agency !== "N/A" && extractedData.agency !== "Not specified" && (
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground">Agency</p>
-                      <p className="text-sm">{extractedData.agency}</p>
-                    </div>
-                  )}
-                  {extractedData.client_type && (
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground">Type</p>
-                      <p className="text-sm">{extractedData.client_type}</p>
+                      <p className="text-sm">{extractedData.clientSummary}</p>
                     </div>
                   )}
                   {extractedData.deadline && (
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground">Deadline</p>
-                      <p className="text-sm">{extractedData.deadline !== "Not specified" && extractedData.deadline !== "Unknown" ? new Date(extractedData.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "TBD"}</p>
+                      <p className="text-sm">{new Date(extractedData.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     </div>
                   )}
                 </CardContent>
@@ -445,17 +440,25 @@ const NewTender = () => {
                   <CardTitle className="text-lg">Customer Requirements</CardTitle>
                 </CardHeader>
                 <CardContent className="max-h-96 overflow-y-auto">
-                  {extractedData.requirements ? (
-                    <ul className="space-y-2">
-                      {(Array.isArray(extractedData.requirements) ? extractedData.requirements : extractedData.requirements.split('\n').filter((line: string) => line.trim())).slice(0, 5).map((req: string, index: number) => (
-                        <li key={index} className="flex items-start gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-                          <span className="text-sm text-muted-foreground">{req}</span>
+                  {mockData.requirements.length > 0 ? (
+                    <ul className="space-y-3">
+                      {mockData.requirements.slice(0, 3).map((req: any, index: number) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <Checkbox 
+                            checked={req.status === "Open"}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-start gap-2">
+                              <Badge variant="outline" className="text-xs">{req.type}</Badge>
+                              <span className="text-sm text-muted-foreground">{req.description}</span>
+                            </div>
+                          </div>
                         </li>
                       ))}
-                      {(Array.isArray(extractedData.requirements) ? extractedData.requirements.length : extractedData.requirements.split('\n').filter((line: string) => line.trim()).length) > 5 && (
-                        <li className="text-sm text-primary italic pl-4">
-                          {(Array.isArray(extractedData.requirements) ? extractedData.requirements.length : extractedData.requirements.split('\n').filter((line: string) => line.trim()).length) - 5} more requirements...
+                      {mockData.requirements.length > 3 && (
+                        <li className="text-sm text-primary italic pl-7">
+                          {mockData.requirements.length - 3} more requirements...
                         </li>
                       )}
                     </ul>
@@ -466,6 +469,9 @@ const NewTender = () => {
               </Card>
             </div>
 
+            {/* AI Analysis Section */}
+            <AIAnalysisCard {...aiAnalysis} />
+
             {/* Executive Summary */}
             <Card className="shadow-card">
               <CardHeader>
@@ -473,30 +479,44 @@ const NewTender = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">{extractedData.goals}</p>
-                {extractedData.scope && (
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-semibold mb-2">Scope of Work</h4>
-                    <p className="text-muted-foreground text-sm">{extractedData.scope}</p>
+                    <h3 className="font-semibold text-sm mb-2">Deliverables</h3>
+                    <ul className="space-y-1">
+                      {mockData.executiveSummary.deliverables.map((item: string, index: number) => (
+                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                )}
+                  <div>
+                    <h3 className="font-semibold text-sm mb-2">Constraints</h3>
+                    <ul className="space-y-1">
+                      {mockData.executiveSummary.constraints.map((item: string, index: number) => (
+                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-warning mt-1.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Evaluation Criteria */}
-            {extractedData.evaluation && (
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle>Evaluation Criteria</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-muted-foreground text-sm whitespace-pre-line">
-                    {Array.isArray(extractedData.evaluation) 
-                      ? extractedData.evaluation.join('\n') 
-                      : extractedData.evaluation}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Requirements Matrix */}
+            <RequirementsMatrix 
+              clientSnapshot={mockData.clientSnapshot}
+              requirements={mockData.requirements}
+            />
+
+            {/* Eligibility Checklist */}
+            <EligibilityChecklist items={mockData.eligibility} />
+
+            {/* Evaluation Criteria & Strategy */}
+            <EvaluationStrategy {...mockData.evaluation} />
           </div>
         </main>
       </div>
