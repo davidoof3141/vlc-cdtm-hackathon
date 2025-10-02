@@ -10,6 +10,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import RequirementsMonitorPanel from "@/components/editor/RequirementsMonitorPanel";
 import DraftWriterPanel from "@/components/editor/DraftWriterPanel";
+import MarkdownIt from "markdown-it";
+import html2pdf from "html2pdf.js";
+
+const md = new MarkdownIt();
 
 const CollaborativeEditor = () => {
   const { id } = useParams();
@@ -17,6 +21,7 @@ const CollaborativeEditor = () => {
   const [content, setContent] = useState("");
   const [tender, setTender] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -52,8 +57,52 @@ const CollaborativeEditor = () => {
     toast.success("Draft saved successfully");
   };
 
-  const handleExport = () => {
-    toast.success("Exporting draft as Word document...");
+  const handleExport = async () => {
+    if (!content.trim()) {
+      toast.error("No content to export");
+      return;
+    }
+
+    setExporting(true);
+    toast.info("Generating PDF...");
+
+    try {
+      // Convert markdown to HTML
+      const htmlContent = md.render(content);
+
+      // Create a styled HTML document
+      const styledHtml = `
+        <div style="font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto;">
+          <div style="border-bottom: 3px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
+            <h1 style="margin: 0; color: #333;">${tender?.title || 'RFP Response'}</h1>
+            <p style="margin: 10px 0 0 0; color: #666;">Client: ${tender?.client_name || 'N/A'}</p>
+            <p style="margin: 5px 0 0 0; color: #666;">Date: ${new Date().toLocaleDateString()}</p>
+          </div>
+          <div style="line-height: 1.6; color: #333;">
+            ${htmlContent}
+          </div>
+        </div>
+      `;
+
+      // Configure PDF options
+      const opt = {
+        margin: [15, 15, 15, 15] as [number, number, number, number],
+        filename: `${tender?.title || 'rfp-response'}-${Date.now()}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+      };
+
+      // Generate and download PDF
+      await html2pdf().set(opt).from(styledHtml).save();
+      
+      toast.success("PDF exported successfully!");
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast.error("Failed to export PDF");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleContentGenerated = (generatedContent: string) => {
@@ -102,9 +151,9 @@ const CollaborativeEditor = () => {
               <Save className="mr-2 h-4 w-4" />
               Save Draft
             </Button>
-            <Button onClick={handleExport}>
+            <Button onClick={handleExport} disabled={exporting}>
               <Download className="mr-2 h-4 w-4" />
-              Export
+              {exporting ? "Exporting..." : "Export PDF"}
             </Button>
           </div>
         </div>
