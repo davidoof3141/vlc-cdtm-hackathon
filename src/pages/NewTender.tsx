@@ -9,31 +9,82 @@ import { useNavigate } from "react-router-dom";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { toast } from "sonner";
 
+interface ExtractedData {
+  title: string;
+  client: string;
+  deadline: string;
+  requirements: string;
+  goals: string;
+  scope: string;
+  evaluation: string;
+  clientSummary: string;
+}
+
 const NewTender = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<"upload" | "review">("upload");
   const [uploading, setUploading] = useState(false);
-  const [extractedData, setExtractedData] = useState({
-    title: "Digital Transformation Initiative",
-    client: "Global Finance Corp",
-    deadline: "2025-11-15",
-    requirements: "- Modernize legacy banking systems\n- Implement cloud-native architecture\n- Ensure regulatory compliance\n- Provide staff training",
-    goals: "Transform enterprise banking infrastructure to support digital-first customer experiences while maintaining security and compliance standards.",
-    scope: "Full-stack modernization including frontend applications, backend services, database migration, and integration with third-party fintech solutions.",
-    evaluation: "- Technical approach (30%)\n- Team experience (25%)\n- Cost effectiveness (20%)\n- Timeline feasibility (15%)\n- Innovation (10%)",
-    clientSummary: "Global Finance Corp is a leading international banking institution with over 50 years of experience. They prioritize security, compliance, and customer experience in all technology initiatives."
+  const [uploadedFileName, setUploadedFileName] = useState("");
+  const [extractedData, setExtractedData] = useState<ExtractedData>({
+    title: "",
+    client: "",
+    deadline: "",
+    requirements: "",
+    goals: "",
+    scope: "",
+    evaluation: "",
+    clientSummary: ""
   });
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setUploading(true);
-      // Simulate AI extraction
-      setTimeout(() => {
-        setUploading(false);
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast.error("Please upload a PDF file");
+      return;
+    }
+
+    setUploadedFileName(file.name);
+    setUploading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      console.log('Uploading file to edge function:', file.name);
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-rfp`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to process document');
+      }
+
+      const result = await response.json();
+      console.log('Extraction result:', result);
+
+      if (result.success && result.data) {
+        setExtractedData(result.data);
         setStep("review");
-        toast.success("RFP document analyzed successfully");
-      }, 2000);
+        toast.success("RFP document analyzed successfully by AI");
+      } else {
+        throw new Error(result.error || 'Failed to extract data');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to process document. Please try again.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -213,10 +264,15 @@ const NewTender = () => {
                     <div className="flex flex-col items-center gap-4">
                       <Sparkles className="h-16 w-16 text-accent animate-pulse" />
                       <div>
-                        <p className="text-lg font-semibold">Analyzing document...</p>
+                        <p className="text-lg font-semibold">Analyzing document with AI...</p>
                         <p className="text-sm text-muted-foreground">
-                          AI is extracting key information from your RFP
+                          Extracting requirements, deadlines, and key information
                         </p>
+                        {uploadedFileName && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Processing: {uploadedFileName}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ) : (
