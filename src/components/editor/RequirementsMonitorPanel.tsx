@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, AlertCircle, XCircle, RefreshCw, Sparkles } from "lucide-react";
+import { CheckCircle, AlertCircle, XCircle, RefreshCw, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -181,6 +181,11 @@ const RequirementsMonitorPanel = ({ draftContent, tenderData }: RequirementsMoni
                             </Badge>
                           </div>
                         </div>
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 flex-shrink-0" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                        )}
                       </div>
                     </div>
                     
