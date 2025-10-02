@@ -111,6 +111,22 @@ const NewTender = () => {
       const mockData = generateMockData();
       const aiAnalysis = generateAIAnalysis();
 
+      // Helper function to validate and format date
+      const formatDeadline = (dateStr: string): string | null => {
+        if (!dateStr || dateStr.toLowerCase().includes('not specified') || dateStr.toLowerCase().includes('unknown')) {
+          return null;
+        }
+        try {
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) {
+            return null;
+          }
+          return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        } catch {
+          return null;
+        }
+      };
+
       // Prepare tender data for database
       const tenderData = {
         user_id: user.id,
@@ -118,7 +134,7 @@ const NewTender = () => {
         // Basic Information
         title: extractedData.title,
         client_name: extractedData.client,
-        deadline: extractedData.deadline,
+        deadline: formatDeadline(extractedData.deadline),
         status: 'open',
         priority: 'high',
         
