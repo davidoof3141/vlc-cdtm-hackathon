@@ -114,8 +114,6 @@ const NewTender = () => {
         // Basic Information
         title: extractedData.title,
         client_name: extractedData.client,
-        project_name: extractedData.title,
-        subtitle: `${extractedData.title} - AI-powered RFP response`,
         deadline: extractedData.deadline,
         status: 'open',
         priority: 'high',
@@ -140,40 +138,14 @@ const NewTender = () => {
         primary_dept_rationale: aiAnalysis.primaryDeptRationale,
         co_involve: aiAnalysis.coInvolve,
         
-        // Go/No-Go Details
+        // Additional Data
         budget: mockData.goNoGo.budget,
         budget_type: mockData.goNoGo.budgetType,
         target_gm: mockData.goNoGo.targetGM,
-        strategic_context: mockData.goNoGo.strategicContext,
-        past_win: mockData.goNoGo.pastWin,
-        owner: mockData.goNoGo.owner,
-        
-        // Executive Summary
-        executive_summary_ask: mockData.executiveSummary.ask,
-        priorities: mockData.executiveSummary.priorities,
         deliverables: mockData.executiveSummary.deliverables,
         constraints: mockData.executiveSummary.constraints,
-        
-        // Client Snapshot
-        agency: mockData.clientSnapshot.agency,
-        industry: mockData.clientSnapshot.industry,
-        company_size: mockData.clientSnapshot.size,
-        procurement: mockData.clientSnapshot.procurement,
-        mandate: mockData.clientSnapshot.mandate,
-        contact: mockData.clientSnapshot.contact,
-        past_work: mockData.clientSnapshot.pastWork,
-        
-        // Requirements Matrix
-        product_requirements: mockData.requirements,
-        
-        // Eligibility
         eligibility_items: mockData.eligibility,
-        
-        // Evaluation
         evaluation_weights: mockData.evaluation.criteria,
-        win_themes: mockData.evaluation.winThemes,
-        gaps: mockData.evaluation.gaps,
-        required_attachments: mockData.evaluation.attachments,
         
         // Metadata
         progress: 0
