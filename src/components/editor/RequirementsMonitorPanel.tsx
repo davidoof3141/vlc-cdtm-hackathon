@@ -31,6 +31,7 @@ const RequirementsMonitorPanel = ({ draftContent, tenderData }: RequirementsMoni
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [autoMonitor, setAutoMonitor] = useState(true);
+  const [expandedRequirements, setExpandedRequirements] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (autoMonitor && draftContent) {
@@ -85,6 +86,18 @@ const RequirementsMonitorPanel = ({ draftContent, tenderData }: RequirementsMoni
       default:
         return null;
     }
+  };
+
+  const toggleRequirement = (index: number) => {
+    setExpandedRequirements(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -145,40 +158,49 @@ const RequirementsMonitorPanel = ({ draftContent, tenderData }: RequirementsMoni
             {/* Requirements List */}
             <div className="space-y-3">
               <h3 className="font-semibold text-sm">Requirement Status</h3>
-              {analysis.requirements.map((req, index) => (
-                <div key={index} className={`group/req border rounded-lg overflow-hidden transition-all ${getStatusColor(req.status)}`}>
-                  {/* Always visible header */}
-                  <div className="p-3">
-                    <div className="flex items-start gap-2">
-                      {getStatusIcon(req.status)}
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{req.requirement}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            {req.coverage}% covered
-                          </Badge>
-                          <Badge variant="outline" className="text-xs capitalize">
-                            {req.status}
-                          </Badge>
+              {analysis.requirements.map((req, index) => {
+                const isExpanded = expandedRequirements.has(index);
+                return (
+                  <div 
+                    key={index} 
+                    className={`group/req border rounded-lg overflow-hidden transition-all cursor-pointer ${getStatusColor(req.status)}`}
+                    onClick={() => toggleRequirement(index)}
+                  >
+                    {/* Always visible header */}
+                    <div className="p-3">
+                      <div className="flex items-start gap-2">
+                        {getStatusIcon(req.status)}
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{req.requirement}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {req.coverage}% covered
+                            </Badge>
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {req.status}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Expandable details on hover */}
-                  <div className="max-h-0 group-hover/req:max-h-96 overflow-hidden transition-all duration-300">
-                    <div className="px-3 pb-3 space-y-2">
-                      <p className="text-xs text-muted-foreground">{req.feedback}</p>
-                      {req.suggestions && (
-                        <p className="text-xs bg-background/50 p-2 rounded">
-                          <span className="font-medium">Suggestion: </span>
-                          {req.suggestions}
-                        </p>
-                      )}
+                    
+                    {/* Expandable details on hover or when clicked */}
+                    <div className={`overflow-hidden transition-all duration-300 ${
+                      isExpanded ? 'max-h-96' : 'max-h-0 group-hover/req:max-h-96'
+                    }`}>
+                      <div className="px-3 pb-3 space-y-2">
+                        <p className="text-xs text-muted-foreground">{req.feedback}</p>
+                        {req.suggestions && (
+                          <p className="text-xs bg-background/50 p-2 rounded">
+                            <span className="font-medium">Suggestion: </span>
+                            {req.suggestions}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Next Steps */}
