@@ -209,19 +209,6 @@ const TenderDetail = () => {
                     </ul>
                   </div>
                 )}
-                {tenderData.executiveSummary.constraints && tenderData.executiveSummary.constraints.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2">Constraints</h4>
-                    <ul className="space-y-1.5">
-                      {tenderData.executiveSummary.constraints.map((item: string, index: number) => (
-                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-warning mt-2 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
                 {tenderData.executiveSummary.priorities && (
                   <div>
                     <h4 className="font-semibold text-sm mb-2">Priorities</h4>
