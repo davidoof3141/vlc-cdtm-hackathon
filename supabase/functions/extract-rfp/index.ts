@@ -56,14 +56,23 @@ serve(async (req) => {
 Extract and return a JSON object with these fields:
 - title: A clear, professional title for the tender
 - client: The client/organization name
+- client_type: Whether the client is "Public" or "Private" sector
+- client_revenue: Estimated annual revenue or budget (if mentioned)
+- client_summary: Brief 2-3 sentence summary about the client including their industry, size, and background
+- agency: The specific agency or department (if applicable, especially for public sector)
 - deadline: Submission deadline in YYYY-MM-DD format
-- requirements: Bullet-pointed list of key requirements
+- requirements: Bullet-pointed list of key customer requirements and needs
 - goals: Main objectives and goals of the project
 - scope: Detailed scope of work
 - evaluation: Evaluation criteria with percentages if mentioned
-- clientSummary: Brief 2-3 sentence summary about the client
 
-Be thorough and professional. If information is missing, make reasonable professional inferences based on context.`;
+Be thorough and professional. Pay special attention to:
+- Client sector (public/private)
+- Client organization details (revenue, size, industry)
+- Specific agency or department issuing the RFP
+- All customer requirements and technical needs
+
+If information is missing, make reasonable professional inferences based on context.`;
 
     console.log('Sending request to Lovable AI...');
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
