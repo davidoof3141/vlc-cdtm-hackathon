@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Upload, FileText, Sparkles, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import AIAnalysisCard from "@/components/tender/AIAnalysisCard";
+
 import GoNoGoDetails from "@/components/tender/GoNoGoDetails";
 import RequirementsMatrix from "@/components/tender/RequirementsMatrix";
 import EligibilityChecklist from "@/components/tender/EligibilityChecklist";
@@ -391,9 +391,6 @@ const NewTender = () => {
           </div>
 
           <div className="space-y-6">
-            {/* AI Analysis Section */}
-            <AIAnalysisCard {...aiAnalysis} />
-
             {/* Go/No-Go Details */}
             <GoNoGoDetails {...mockData.goNoGo} />
 
