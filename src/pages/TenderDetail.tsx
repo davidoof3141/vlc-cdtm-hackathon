@@ -207,13 +207,14 @@ const TenderDetail = () => {
                 {tenderData.executiveSummary.desiredStructure && (
                   <div>
                     <h4 className="font-semibold text-sm mb-2">Desired Structure</h4>
-                    <p className="text-sm text-muted-foreground">{tenderData.executiveSummary.desiredStructure}</p>
-                  </div>
-                )}
-                {tenderData.executiveSummary.priorities && (
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2">Priorities</h4>
-                    <p className="text-sm text-muted-foreground">{tenderData.executiveSummary.priorities}</p>
+                    <ul className="space-y-1.5">
+                      {tenderData.executiveSummary.desiredStructure.split('\n').filter((line: string) => line.trim()).map((item: string, index: number) => (
+                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+                          {item.trim()}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </CardContent>
