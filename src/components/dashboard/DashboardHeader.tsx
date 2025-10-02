@@ -39,7 +39,7 @@ const DashboardHeader = () => {
           <div className="flex items-center gap-3">
             <FileText className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-xl font-bold text-primary">RFP Assistant</h1>
+              <h1 className="text-xl font-bold text-primary">PropoSAURUS</h1>
               <p className="text-xs text-muted-foreground">NTT DATA Solutions</p>
             </div>
           </div>

@@ -128,7 +128,7 @@ const Auth = () => {
           <div className="flex items-center gap-3 mb-6">
             <FileText className="h-12 w-12" />
             <div>
-              <h1 className="text-4xl font-bold">RFP Assistant</h1>
+              <h1 className="text-4xl font-bold">PropoSAURUS</h1>
               <p className="text-sm opacity-90">Powered by NTT DATA</p>
             </div>
           </div>
@@ -171,7 +171,7 @@ const Auth = () => {
           <CardHeader>
             <div className="lg:hidden flex items-center gap-2 mb-4">
               <FileText className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-primary">RFP Assistant</span>
+              <span className="text-xl font-bold text-primary">PropoSAURUS</span>
             </div>
             <CardTitle className="text-2xl">Welcome</CardTitle>
             <CardDescription>
