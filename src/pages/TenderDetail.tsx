@@ -181,6 +181,84 @@ const TenderDetail = () => {
           {/* Go/No-Go Details */}
           <GoNoGoDetails {...tenderData.goNoGo} />
 
+          {/* Three Column Overview */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* What Client Needs */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="text-lg">What Client Needs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{tenderData.executiveSummary.ask || "No information available"}</p>
+                {tenderData.executiveSummary.priorities && (
+                  <div className="mt-4">
+                    <h4 className="font-semibold text-sm mb-2">Priorities</h4>
+                    <p className="text-sm text-muted-foreground">{tenderData.executiveSummary.priorities}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Who is the Client */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="text-lg">Who is the Client</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {tenderData.clientSnapshot.agency && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground">Agency</p>
+                    <p className="text-sm">{tenderData.clientSnapshot.agency}</p>
+                  </div>
+                )}
+                {tenderData.clientSnapshot.industry && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground">Industry</p>
+                    <p className="text-sm">{tenderData.clientSnapshot.industry}</p>
+                  </div>
+                )}
+                {tenderData.clientSnapshot.size && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground">Size</p>
+                    <p className="text-sm">{tenderData.clientSnapshot.size}</p>
+                  </div>
+                )}
+                {tenderData.clientSnapshot.contact && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground">Contact</p>
+                    <p className="text-sm">{tenderData.clientSnapshot.contact}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Customer Requirements */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="text-lg">Customer Requirements</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {tenderData.requirements.length > 0 ? (
+                  <ul className="space-y-2">
+                    {tenderData.requirements.slice(0, 5).map((req: any, index: number) => (
+                      <li key={index} className="text-sm flex items-start gap-2">
+                        <Badge variant="outline" className="mt-0.5 text-xs">{req.type || "REQ"}</Badge>
+                        <span className="text-muted-foreground">{req.description}</span>
+                      </li>
+                    ))}
+                    {tenderData.requirements.length > 5 && (
+                      <li className="text-sm text-muted-foreground italic">
+                        +{tenderData.requirements.length - 5} more requirements...
+                      </li>
+                    )}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No requirements listed</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
           {/* AI Analysis Section */}
           <AIAnalysisCard {...tenderData.aiAnalysis} />
 
