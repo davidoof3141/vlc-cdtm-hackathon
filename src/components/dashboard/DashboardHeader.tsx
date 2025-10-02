@@ -10,12 +10,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const DashboardHeader = () => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    navigate("/auth");
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast.error("Failed to logout");
+        console.error("Logout error:", error);
+      } else {
+        toast.success("Logged out successfully");
+        navigate("/auth");
+      }
+    } catch (error) {
+      console.error("Unexpected logout error:", error);
+      toast.error("An error occurred during logout");
+    }
   };
 
   return (
