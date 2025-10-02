@@ -125,6 +125,45 @@ const NewTender = () => {
   };
 
   const generateMockData = () => {
+    // Helper function to safely convert requirements to array
+    const getRequirementsArray = () => {
+      if (!extractedData.requirements) return [
+        "Solution architecture and design",
+        "Implementation and deployment",
+        "Documentation and training",
+        "Post-launch support"
+      ];
+      
+      if (typeof extractedData.requirements === 'string') {
+        return extractedData.requirements.split('\n').filter(r => r.trim());
+      }
+      
+      if (Array.isArray(extractedData.requirements)) {
+        return extractedData.requirements;
+      }
+      
+      return [String(extractedData.requirements)];
+    };
+
+    // Helper function to safely convert scope to array
+    const getScopeArray = () => {
+      if (!extractedData.scope) return [
+        "Budget constraints",
+        "Timeline requirements",
+        "Compliance requirements"
+      ];
+      
+      if (typeof extractedData.scope === 'string') {
+        return extractedData.scope.split('.').filter(c => c.trim());
+      }
+      
+      if (Array.isArray(extractedData.scope)) {
+        return extractedData.scope;
+      }
+      
+      return [String(extractedData.scope)];
+    };
+
     return {
       goNoGo: {
         deadline: extractedData.deadline || "2025-12-31",
@@ -140,17 +179,8 @@ const NewTender = () => {
       executiveSummary: {
         ask: extractedData.goals || "Project objectives to be defined",
         priorities: "Timeline adherence, quality delivery, stakeholder satisfaction",
-        deliverables: extractedData.requirements?.split('\n').filter(r => r.trim()) || [
-          "Solution architecture and design",
-          "Implementation and deployment",
-          "Documentation and training",
-          "Post-launch support"
-        ],
-        constraints: extractedData.scope?.split('.').filter(c => c.trim()) || [
-          "Budget constraints",
-          "Timeline requirements",
-          "Compliance requirements"
-        ]
+        deliverables: getRequirementsArray(),
+        constraints: getScopeArray()
       },
       clientSnapshot: {
         agency: extractedData.client || "Client Organization",
