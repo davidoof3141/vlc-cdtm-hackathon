@@ -1,224 +1,189 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Sparkles, CheckCircle, FileText } from "lucide-react";
+import { ArrowLeft, Save, Users } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
+import CollaborativeEditor from "@/components/editor/CollaborativeEditor";
+import RequirementsTracker from "@/components/editor/RequirementsTracker";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Requirement {
+  id: string;
+  title: string;
+  mandatory: boolean;
+  completed: boolean;
+  description?: string;
+}
 
 const DraftCreator = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [selectedDraft, setSelectedDraft] = useState<number | null>(null);
-  const [generating, setGenerating] = useState(false);
+  const { toast } = useToast();
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [draftContent, setDraftContent] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [tenderTitle, setTenderTitle] = useState("");
 
-  const drafts = [
-    {
-      id: 1,
-      title: "Professional & Technical",
-      tone: "formal",
-      preview: "NTT DATA is pleased to submit our proposal for the Digital Transformation Initiative. With over 50 years of experience in enterprise technology solutions, we bring a comprehensive approach to modernizing your banking infrastructure...",
-      strengths: ["Emphasizes credentials", "Detailed technical approach", "Formal language"]
-    },
-    {
-      id: 2,
-      title: "Innovative & Forward-Thinking",
-      tone: "innovative",
-      preview: "At NTT DATA, we see the Digital Transformation Initiative as an opportunity to revolutionize your banking infrastructure using cutting-edge cloud technologies and AI-driven solutions. Our agile methodology ensures rapid deployment...",
-      strengths: ["Highlights innovation", "Modern approach", "Agile methodology"]
-    },
-    {
-      id: 3,
-      title: "Partnership-Focused",
-      tone: "collaborative",
-      preview: "We view this Digital Transformation Initiative as the beginning of a strategic partnership with Global Finance Corp. NTT DATA's collaborative approach ensures your team is involved at every stage, from planning to implementation...",
-      strengths: ["Emphasizes collaboration", "Client-centric", "Long-term partnership"]
+  useEffect(() => {
+    if (id) {
+      fetchTenderData();
     }
-  ];
+  }, [id]);
 
-  const handleGenerateMore = () => {
-    setGenerating(true);
-    setTimeout(() => {
-      setGenerating(false);
-      toast.success("New draft variations generated");
-    }, 2000);
+  const fetchTenderData = async () => {
+    try {
+      const { data: tender, error } = await supabase
+        .from("tenders")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+
+      if (tender) {
+        setTenderTitle(tender.title);
+        // Parse requirements from tender data
+        const parsedRequirements = parseRequirementsFromTender(tender);
+        setRequirements(parsedRequirements);
+      }
+    } catch (error) {
+      console.error("Error fetching tender:", error);
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Tender-Daten konnten nicht geladen werden",
+      });
+    }
   };
 
-  const handleSelectDraft = (draftId: number) => {
-    setSelectedDraft(draftId);
-    toast.success("Draft selected. You can now move to collaborative editing.");
+  const parseRequirementsFromTender = (tender: any): Requirement[] => {
+    const reqs: Requirement[] = [];
+    
+    // Parse requirements string into individual requirements
+    if (tender.requirements) {
+      const lines = tender.requirements.split('\n').filter((line: string) => line.trim());
+      lines.forEach((line: string, index: number) => {
+        reqs.push({
+          id: `req-${index}`,
+          title: line.trim(),
+          mandatory: true,
+          completed: false,
+        });
+      });
+    }
+
+    // Add evaluation criteria as requirements
+    if (tender.evaluation_criteria) {
+      const criteriaLines = tender.evaluation_criteria.split('\n').filter((line: string) => line.trim());
+      criteriaLines.forEach((line: string, index: number) => {
+        reqs.push({
+          id: `criteria-${index}`,
+          title: line.trim(),
+          mandatory: false,
+          completed: false,
+        });
+      });
+    }
+
+    // Add deliverables as requirements
+    if (tender.deliverables && Array.isArray(tender.deliverables)) {
+      tender.deliverables.forEach((deliverable: string, index: number) => {
+        reqs.push({
+          id: `deliverable-${index}`,
+          title: deliverable,
+          mandatory: true,
+          completed: false,
+          description: "Zu lieferndes Element"
+        });
+      });
+    }
+
+    return reqs;
   };
 
-  const handleMoveToEditor = () => {
-    if (selectedDraft) {
-      navigate(`/tenders/${id}/editor`);
+  const handleSaveDraft = async () => {
+    setSaving(true);
+    try {
+      // In a real implementation, save to database
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Entwurf gespeichert",
+        description: "Ihr RFP-Entwurf wurde erfolgreich gespeichert",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fehler beim Speichern",
+        description: "Der Entwurf konnte nicht gespeichert werden",
+      });
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const handleRequirementClick = (requirementId: string) => {
+    // Toggle requirement completion
+    setRequirements(prev =>
+      prev.map(req =>
+        req.id === requirementId
+          ? { ...req, completed: !req.completed }
+          : req
+      )
+    );
   };
 
   return (
     <div className="min-h-screen bg-gradient-hero">
       <DashboardHeader />
+      
       <main className="container mx-auto px-6 py-8">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(`/tenders/${id}`)}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Tender
-        </Button>
-
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-              <Sparkles className="h-8 w-8 text-accent" />
-              Draft Response Generator
-            </h1>
-            <p className="text-muted-foreground">
-              AI has generated multiple draft responses with different tones and approaches. 
-              Select the one that best fits your needs.
-            </p>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <div className="flex gap-2">
-              <Badge variant="outline" className="border-accent text-accent">
-                3 drafts generated
-              </Badge>
-              {selectedDraft && (
-                <Badge variant="default">
-                  <CheckCircle className="mr-1 h-3 w-3" />
-                  Draft {selectedDraft} selected
-                </Badge>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={handleGenerateMore}
-                disabled={generating}
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                {generating ? "Generating..." : "Generate More Variations"}
-              </Button>
-              {selectedDraft && (
-                <Button onClick={handleMoveToEditor}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Move to Editor
-                </Button>
-              )}
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate(`/tenders/${id}`)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Zurück
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">{tenderTitle}</h1>
+              <p className="text-sm text-muted-foreground">RFP Response Draft</p>
             </div>
           </div>
 
-          <Tabs defaultValue="compare" className="w-full">
-            <TabsList>
-              <TabsTrigger value="compare">Compare Drafts</TabsTrigger>
-              <TabsTrigger value="draft1">Draft 1</TabsTrigger>
-              <TabsTrigger value="draft2">Draft 2</TabsTrigger>
-              <TabsTrigger value="draft3">Draft 3</TabsTrigger>
-            </TabsList>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20">
+              <Users className="h-4 w-4 text-accent" />
+              <span className="text-sm font-medium">Kollaborativ</span>
+            </div>
+            <Button onClick={handleSaveDraft} disabled={saving}>
+              <Save className="mr-2 h-4 w-4" />
+              {saving ? "Speichern..." : "Speichern"}
+            </Button>
+          </div>
+        </div>
 
-            <TabsContent value="compare" className="space-y-4">
-              {drafts.map((draft) => (
-                <Card 
-                  key={draft.id}
-                  className={`shadow-card transition-all cursor-pointer ${
-                    selectedDraft === draft.id 
-                      ? 'ring-2 ring-accent border-accent' 
-                      : 'hover:shadow-elegant'
-                  }`}
-                  onClick={() => handleSelectDraft(draft.id)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-xl mb-2">{draft.title}</CardTitle>
-                        <Badge variant="secondary">{draft.tone}</Badge>
-                      </div>
-                      {selectedDraft === draft.id && (
-                        <CheckCircle className="h-6 w-6 text-accent" />
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground leading-relaxed">
-                      {draft.preview}
-                    </p>
-                    <div>
-                      <p className="text-sm font-semibold mb-2">Key Strengths:</p>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        {draft.strengths.map((strength, index) => (
-                          <li key={index} className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                            {strength}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
+        {/* Split Screen Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6 h-[calc(100vh-240px)]">
+          {/* Left Panel - Requirements & Progress */}
+          <div className="overflow-y-auto">
+            <RequirementsTracker 
+              requirements={requirements}
+              onRequirementClick={handleRequirementClick}
+            />
+          </div>
 
-            {drafts.map((draft) => (
-              <TabsContent key={draft.id} value={`draft${draft.id}`}>
-                <Card className="shadow-elegant">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-xl mb-2">{draft.title}</CardTitle>
-                        <Badge variant="secondary">{draft.tone}</Badge>
-                      </div>
-                      <Button 
-                        onClick={() => handleSelectDraft(draft.id)}
-                        variant={selectedDraft === draft.id ? "default" : "outline"}
-                      >
-                        {selectedDraft === draft.id ? (
-                          <>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Selected
-                          </>
-                        ) : (
-                          "Select This Draft"
-                        )}
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div>
-                      <h3 className="font-semibold mb-3">Full Draft Preview</h3>
-                      <div className="prose max-w-none text-muted-foreground">
-                        <p className="mb-4">{draft.preview}</p>
-                        <p className="mb-4">
-                          Our comprehensive approach includes detailed analysis of your current infrastructure, 
-                          a phased migration strategy, and ongoing support to ensure success. We understand the 
-                          critical importance of maintaining security and compliance throughout the transformation process.
-                        </p>
-                        <p>
-                          The proposed solution leverages industry-leading cloud platforms, modern DevOps practices, 
-                          and our proprietary frameworks developed over decades of enterprise transformation projects. 
-                          Our team brings deep expertise in banking technology and regulatory compliance.
-                        </p>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2">Strengths of this approach:</h3>
-                      <ul className="space-y-2">
-                        {draft.strengths.map((strength, index) => (
-                          <li key={index} className="flex items-center gap-2 text-muted-foreground">
-                            <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
-                            {strength}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            ))}
-          </Tabs>
+          {/* Right Panel - Collaborative Editor */}
+          <div className="overflow-hidden">
+            <CollaborativeEditor 
+              tenderId={id || 'default'}
+              onContentChange={setDraftContent}
+            />
+          </div>
         </div>
       </main>
     </div>
