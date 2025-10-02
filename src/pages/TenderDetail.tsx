@@ -121,6 +121,8 @@ const TenderDetail = () => {
       agency: tender.agency || tender.client_name,
       industry: tender.industry || "",
       size: tender.company_size || "",
+      type: tender.client_type || "",
+      averageRevenue: tender.average_revenue || "",
       procurement: tender.procurement || "",
       mandate: tender.mandate || "",
       contact: tender.contact || "",
@@ -232,6 +234,12 @@ const TenderDetail = () => {
                     <p className="text-sm">{tenderData.clientSnapshot.agency}</p>
                   </div>
                 )}
+                {tenderData.clientSnapshot.type && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground">Type</p>
+                    <p className="text-sm">{tenderData.clientSnapshot.type}</p>
+                  </div>
+                )}
                 {tenderData.clientSnapshot.industry && (
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground">Industry</p>
@@ -242,6 +250,12 @@ const TenderDetail = () => {
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground">Size</p>
                     <p className="text-sm">{tenderData.clientSnapshot.size}</p>
+                  </div>
+                )}
+                {tenderData.clientSnapshot.averageRevenue && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground">Average Revenue</p>
+                    <p className="text-sm">{tenderData.clientSnapshot.averageRevenue}</p>
                   </div>
                 )}
                 {tenderData.clientSnapshot.contact && (
