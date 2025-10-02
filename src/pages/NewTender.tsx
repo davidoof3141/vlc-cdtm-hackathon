@@ -108,10 +108,7 @@ const NewTender = () => {
         return;
       }
 
-      const mockData = generateMockData();
-      const aiAnalysis = generateAIAnalysis();
-
-      // Prepare tender data for database
+      // Prepare tender data for database using only extracted data
       const tenderData = {
         user_id: user.id,
         
@@ -120,7 +117,7 @@ const NewTender = () => {
         client_name: extractedData.client,
         deadline: extractedData.deadline,
         status: 'open',
-        priority: 'high',
+        priority: 'medium',
         
         // Extracted RFP Data
         requirements: extractedData.requirements,
@@ -128,28 +125,6 @@ const NewTender = () => {
         scope: extractedData.scope,
         evaluation_criteria: extractedData.evaluation,
         client_summary: extractedData.clientSummary,
-        
-        // AI Analysis Data
-        company_fit_score: aiAnalysis.companyFitScore,
-        ai_confidence: aiAnalysis.confidence,
-        capability: aiAnalysis.capability,
-        compliance: aiAnalysis.compliance,
-        profitability: aiAnalysis.profitability,
-        delivery_window: aiAnalysis.deliveryWindow,
-        why_fits: aiAnalysis.whyFits,
-        risks: aiAnalysis.risks,
-        primary_dept: aiAnalysis.primaryDept,
-        primary_dept_rationale: aiAnalysis.primaryDeptRationale,
-        co_involve: aiAnalysis.coInvolve,
-        
-        // Additional Data
-        budget: mockData.goNoGo.budget,
-        budget_type: mockData.goNoGo.budgetType,
-        target_gm: mockData.goNoGo.targetGM,
-        deliverables: mockData.executiveSummary.deliverables,
-        constraints: mockData.executiveSummary.constraints,
-        eligibility_items: mockData.eligibility,
-        evaluation_weights: mockData.evaluation.criteria,
         
         // Metadata
         progress: 0
