@@ -1,16 +1,20 @@
 import { useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileText, Sparkles, ArrowLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Upload, FileText, ArrowLeft, FileEdit, Download, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import AIAnalysisCard from "@/components/tender/AIAnalysisCard";
 
 import GoNoGoDetails from "@/components/tender/GoNoGoDetails";
 import RequirementsMatrix from "@/components/tender/RequirementsMatrix";
 import EligibilityChecklist from "@/components/tender/EligibilityChecklist";
+import EvaluationStrategy from "@/components/tender/EvaluationStrategy";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -348,7 +352,7 @@ const NewTender = () => {
                   {extractedData.client} — {extractedData.title}
                 </h1>
                 <p className="text-muted-foreground text-lg">
-                  Review extracted information and AI analysis before publishing
+                  Review extracted information before saving
                 </p>
               </div>
               <div className="flex gap-3">
@@ -356,7 +360,7 @@ const NewTender = () => {
                   Cancel
                 </Button>
                 <Button onClick={handlePublish}>
-                  Save
+                  Save Tender
                 </Button>
               </div>
             </div>
@@ -366,116 +370,159 @@ const NewTender = () => {
             {/* Go/No-Go Details */}
             <GoNoGoDetails {...mockData.goNoGo} />
 
-            {/* Executive Summary - Editable */}
+            {/* Three Column Overview */}
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* What Client Needs */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="text-lg">What Client Needs</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+                  {mockData.executiveSummary.deliverables && mockData.executiveSummary.deliverables.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Key Deliverables</h4>
+                      <ul className="space-y-1.5">
+                        {mockData.executiveSummary.deliverables.map((item: string, index: number) => (
+                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {extractedData.scope && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Desired Structure</h4>
+                      <ul className="space-y-1.5">
+                        {extractedData.scope.split('\n').filter((line: string) => line.trim()).map((item: string, index: number) => (
+                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+                            {item.trim()}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Who is the Client */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="text-lg">Who is the Client</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 max-h-96 overflow-y-auto">
+                  {extractedData.client && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground">Agency</p>
+                      <p className="text-sm">{extractedData.client}</p>
+                    </div>
+                  )}
+                  {extractedData.clientSummary && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground">Summary</p>
+                      <p className="text-sm">{extractedData.clientSummary}</p>
+                    </div>
+                  )}
+                  {extractedData.deadline && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground">Deadline</p>
+                      <p className="text-sm">{new Date(extractedData.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Customer Requirements */}
+              <Card className="shadow-card group transition-all duration-300 hover:shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Customer Requirements</CardTitle>
+                </CardHeader>
+                <CardContent className="max-h-96 overflow-y-auto">
+                  {mockData.requirements.length > 0 ? (
+                    <ul className="space-y-3">
+                      {mockData.requirements.slice(0, 3).map((req: any, index: number) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <Checkbox 
+                            checked={req.status === "Open"}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-start gap-2">
+                              <Badge variant="outline" className="text-xs">{req.type}</Badge>
+                              <span className="text-sm text-muted-foreground">{req.description}</span>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                      {mockData.requirements.length > 3 && (
+                        <li className="text-sm text-primary italic pl-7">
+                          {mockData.requirements.length - 3} more requirements...
+                        </li>
+                      )}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No requirements listed</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* AI Analysis Section */}
+            <AIAnalysisCard {...aiAnalysis} />
+
+            {/* Executive Summary */}
             <Card className="shadow-card">
               <CardHeader>
                 <CardTitle>Executive Summary (RFP Ask)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="goals">Project Goals & Objectives</Label>
-                  <Textarea
-                    id="goals"
-                    value={extractedData.goals}
-                    onChange={(e) => setExtractedData({ ...extractedData, goals: e.target.value })}
-                    rows={3}
-                  />
-                </div>
+                <p className="text-muted-foreground">{extractedData.goals}</p>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="requirements">Key Requirements</Label>
-                    <Textarea
-                      id="requirements"
-                      value={extractedData.requirements}
-                      onChange={(e) => setExtractedData({ ...extractedData, requirements: e.target.value })}
-                      rows={6}
-                    />
+                  <div>
+                    <h3 className="font-semibold text-sm mb-2">Deliverables</h3>
+                    <ul className="space-y-1">
+                      {mockData.executiveSummary.deliverables.map((item: string, index: number) => (
+                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="scope">Scope & Constraints</Label>
-                    <Textarea
-                      id="scope"
-                      value={extractedData.scope}
-                      onChange={(e) => setExtractedData({ ...extractedData, scope: e.target.value })}
-                      rows={6}
-                    />
+                  <div>
+                    <h3 className="font-semibold text-sm mb-2">Constraints</h3>
+                    <ul className="space-y-1">
+                      {mockData.executiveSummary.constraints.map((item: string, index: number) => (
+                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-warning mt-1.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Two-Column: Client Snapshot & Requirements */}
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Client Snapshot - Editable */}
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <span className="text-accent">AI</span>
-                    Client / Agency Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="client">Client Name</Label>
-                    <Input
-                      id="client"
-                      value={extractedData.client}
-                      onChange={(e) => setExtractedData({ ...extractedData, client: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="clientSummary">Client Summary</Label>
-                    <Textarea
-                      id="clientSummary"
-                      value={extractedData.clientSummary}
-                      onChange={(e) => setExtractedData({ ...extractedData, clientSummary: e.target.value })}
-                      rows={4}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="deadline">Submission Deadline</Label>
-                    <Input
-                      id="deadline"
-                      type="date"
-                      value={extractedData.deadline}
-                      onChange={(e) => setExtractedData({ ...extractedData, deadline: e.target.value })}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Requirements Preview */}
-              <RequirementsMatrix 
-                clientSnapshot={mockData.clientSnapshot}
-                requirements={mockData.requirements}
-              />
-            </div>
+            {/* Requirements Matrix */}
+            <RequirementsMatrix 
+              clientSnapshot={mockData.clientSnapshot}
+              requirements={mockData.requirements}
+            />
 
             {/* Eligibility Checklist */}
             <EligibilityChecklist items={mockData.eligibility} />
 
-            {/* Evaluation Criteria */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle>Evaluation Criteria</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="evaluation">Evaluation Criteria & Weights</Label>
-                  <Textarea
-                    id="evaluation"
-                    value={extractedData.evaluation}
-                    onChange={(e) => setExtractedData({ ...extractedData, evaluation: e.target.value })}
-                    rows={6}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            {/* Evaluation Criteria & Strategy */}
+            <EvaluationStrategy {...mockData.evaluation} />
           </div>
         </main>
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -518,7 +565,7 @@ const NewTender = () => {
                 <label htmlFor="file-upload" className="cursor-pointer">
                   {uploading ? (
                     <div className="flex flex-col items-center gap-4">
-                      <Sparkles className="h-16 w-16 text-accent animate-pulse" />
+                      <Upload className="h-16 w-16 text-accent animate-pulse" />
                       <div>
                         <p className="text-lg font-semibold">Analyzing document with AI...</p>
                         <p className="text-sm text-muted-foreground">
