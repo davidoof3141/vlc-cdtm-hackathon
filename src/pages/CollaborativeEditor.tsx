@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,7 @@ const CollaborativeEditor = () => {
   const [tender, setTender] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -109,6 +110,52 @@ const CollaborativeEditor = () => {
     setContent(generatedContent);
   };
 
+  const handleRequirementClick = (requirementText: string) => {
+    if (!textareaRef.current || !content) return;
+
+    // Search for the requirement text or related keywords in the content
+    const searchTerms = requirementText.toLowerCase().split(' ').filter(word => word.length > 3);
+    let bestMatch = { index: -1, length: 0 };
+
+    // Try to find the best matching paragraph
+    const paragraphs = content.split('\n\n');
+    let currentIndex = 0;
+
+    for (const paragraph of paragraphs) {
+      const lowerParagraph = paragraph.toLowerCase();
+      let matchCount = 0;
+      
+      searchTerms.forEach(term => {
+        if (lowerParagraph.includes(term)) {
+          matchCount++;
+        }
+      });
+
+      if (matchCount > 0 && (bestMatch.index === -1 || matchCount > bestMatch.length)) {
+        bestMatch = { index: currentIndex, length: paragraph.length };
+      }
+
+      currentIndex += paragraph.length + 2; // +2 for the '\n\n'
+    }
+
+    if (bestMatch.index !== -1) {
+      // Focus the textarea
+      textareaRef.current.focus();
+      
+      // Set selection to highlight the matched paragraph
+      textareaRef.current.setSelectionRange(bestMatch.index, bestMatch.index + bestMatch.length);
+      
+      // Scroll to the selection
+      const lineHeight = 20; // approximate line height in pixels
+      const lines = content.substring(0, bestMatch.index).split('\n').length;
+      textareaRef.current.scrollTop = Math.max(0, (lines - 5) * lineHeight);
+      
+      toast.success("Jumped to relevant section");
+    } else {
+      toast.info("No matching content found for this requirement");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-hero">
@@ -167,6 +214,7 @@ const CollaborativeEditor = () => {
               </CardHeader>
               <CardContent className="h-[600px]">
                 <Textarea
+                  ref={textareaRef}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className="h-full resize-none font-mono text-sm"
@@ -188,6 +236,7 @@ const CollaborativeEditor = () => {
             <RequirementsMonitorPanel
               draftContent={content}
               tenderData={tender}
+              onRequirementClick={handleRequirementClick}
             />
           </div>
         </div>
