@@ -6,7 +6,10 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { toast } from "sonner";
 import CollaborativeEditor from "@/components/editor/CollaborativeEditor";
 import RequirementsTracker from "@/components/editor/RequirementsTracker";
+import AIAnalysisPanel from "@/components/editor/AIAnalysisPanel";
+import AIGenerateButton from "@/components/editor/AIGenerateButton";
 import { supabase } from "@/integrations/supabase/client";
+import Quill from 'quill';
 
 interface Requirement {
   id: string;
@@ -21,6 +24,9 @@ const DraftCreator = () => {
   const navigate = useNavigate();
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [draftContent, setDraftContent] = useState('');
+  const [tenderData, setTenderData] = useState<any>(null);
+  const [quillInstance, setQuillInstance] = useState<Quill | null>(null);
 
   useEffect(() => {
     const fetchTenderData = async () => {
@@ -80,6 +86,7 @@ const DraftCreator = () => {
         }
 
         setRequirements(reqs);
+        setTenderData(tender);
       } catch (error) {
         console.error('Error fetching tender:', error);
         toast.error('Failed to load tender data');
@@ -97,6 +104,27 @@ const DraftCreator = () => {
         req.id === reqId ? { ...req, completed: !req.completed } : req
       )
     );
+  };
+
+  const handleUpdateRequirement = (reqId: string, isMet: boolean) => {
+    setRequirements(prev =>
+      prev.map(req =>
+        req.id === reqId ? { ...req, completed: isMet } : req
+      )
+    );
+  };
+
+  const handleContentChange = (content: string) => {
+    setDraftContent(content);
+  };
+
+  const handleGeneratedContent = (content: string) => {
+    // Find the Quill instance and set the content
+    const editorElement = document.querySelector('.ql-editor');
+    if (editorElement) {
+      editorElement.innerHTML = content;
+      setDraftContent(content);
+    }
   };
 
   const handleSave = (content: string) => {
@@ -121,29 +149,43 @@ const DraftCreator = () => {
     <div className="min-h-screen bg-gradient-hero">
       <DashboardHeader />
       <main className="container mx-auto px-6 py-8">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(`/tenders/${id}`)}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Tender
-        </Button>
+        <div className="flex items-center justify-between mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate(`/tenders/${id}`)}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Tender
+          </Button>
+          
+          <AIGenerateButton 
+            requirements={requirements}
+            tenderInfo={tenderData}
+            existingContent={draftContent}
+            onGenerated={handleGeneratedContent}
+          />
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
-          {/* Left side - Requirements & Progress */}
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-220px)]">
+          {/* Left side - Requirements */}
+          <div className="lg:col-span-1 space-y-4 overflow-auto">
             <RequirementsTracker 
               requirements={requirements}
               onToggleRequirement={handleToggleRequirement}
             />
+            <AIAnalysisPanel 
+              requirements={requirements}
+              draftContent={draftContent}
+              onUpdateRequirement={handleUpdateRequirement}
+            />
           </div>
 
           {/* Right side - Collaborative Editor */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <CollaborativeEditor 
               tenderId={id || ''}
               onSave={handleSave}
+              onContentChange={handleContentChange}
             />
           </div>
         </div>

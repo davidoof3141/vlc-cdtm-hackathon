@@ -11,12 +11,14 @@ import 'quill/dist/quill.snow.css';
 // Register the cursors module
 Quill.register('modules/cursors', QuillCursors);
 
+
 interface CollaborativeEditorProps {
   tenderId: string;
   onSave?: (content: string) => void;
+  onContentChange?: (content: string) => void;
 }
 
-const CollaborativeEditor = ({ tenderId, onSave }: CollaborativeEditorProps) => {
+const CollaborativeEditor = ({ tenderId, onSave, onContentChange }: CollaborativeEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const [provider, setProvider] = useState<WebsocketProvider | null>(null);
@@ -61,6 +63,14 @@ const CollaborativeEditor = ({ tenderId, onSave }: CollaborativeEditorProps) => 
 
     // Bind Quill to Yjs
     const binding = new QuillBinding(ytext, quill, wsProvider.awareness);
+
+    // Listen for text changes to notify parent
+    quill.on('text-change', () => {
+      if (onContentChange) {
+        const html = quill.root.innerHTML;
+        onContentChange(html);
+      }
+    });
 
     // Cleanup
     return () => {
