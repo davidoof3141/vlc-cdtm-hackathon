@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -265,18 +264,20 @@ const TenderDetail = () => {
             </Card>
 
             {/* Customer Requirements */}
-            <Card className="shadow-card group transition-all duration-300 hover:shadow-lg">
+            <Card className="shadow-card">
               <CardHeader>
                 <CardTitle className="text-lg">Customer Requirements</CardTitle>
               </CardHeader>
               <CardContent className="max-h-96 overflow-y-auto">
                 {tenderData.requirements.length > 0 ? (
                   <ul className="space-y-3">
-                    {tenderData.requirements.slice(0, 3).map((req: any, index: number) => (
+                    {tenderData.requirements.slice(0, 6).map((req: any, index: number) => (
                       <li key={index} className="flex items-start gap-3">
-                        <Checkbox 
+                        <input 
+                          type="checkbox" 
                           checked={index % 3 === 0 || index % 5 === 0}
-                          className="mt-1"
+                          readOnly
+                          className="mt-1 h-4 w-4 rounded border-border"
                         />
                         <div className="flex-1">
                           <div className="flex items-start gap-2">
@@ -286,25 +287,9 @@ const TenderDetail = () => {
                         </div>
                       </li>
                     ))}
-                    <div className="max-h-0 overflow-hidden group-hover:max-h-96 transition-all duration-500 space-y-3">
-                      {tenderData.requirements.slice(3).map((req: any, index: number) => (
-                        <li key={index + 3} className="flex items-start gap-3 animate-fade-in">
-                          <Checkbox 
-                            checked={(index + 3) % 3 === 0 || (index + 3) % 5 === 0}
-                            className="mt-1"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-start gap-2">
-                              <Badge variant="outline" className="text-xs">{req.type || "REQ"}</Badge>
-                              <span className="text-sm text-muted-foreground">{req.description}</span>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </div>
-                    {tenderData.requirements.length > 3 && (
-                      <li className="text-sm text-primary italic pl-7 group-hover:opacity-0 transition-opacity">
-                        Hover to see {tenderData.requirements.length - 3} more requirements...
+                    {tenderData.requirements.length > 6 && (
+                      <li className="text-sm text-muted-foreground italic pl-7">
+                        +{tenderData.requirements.length - 6} more requirements...
                       </li>
                     )}
                   </ul>
