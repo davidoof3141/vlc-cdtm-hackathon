@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Plus, FileText, Clock, CheckCircle, XCircle, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import TenderCard from "@/components/dashboard/TenderCard";
@@ -22,6 +22,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [tenders, setTenders] = useState<Tender[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
     fetchTenders();
@@ -71,6 +72,35 @@ const Dashboard = () => {
   const openTenders = tenders.filter(t => t.status === "open");
   const runningTenders = tenders.filter(t => t.status === "running");
   const closedTenders = tenders.filter(t => t.status === "closed");
+
+  const handleSeedSampleData = async () => {
+    setSeeding(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please log in to seed sample data");
+        navigate("/auth");
+        return;
+      }
+
+      const response = await supabase.functions.invoke("seed-sample-tenders", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      toast.success("4 sample tenders have been added to your dashboard");
+      fetchTenders();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to create sample data");
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -138,7 +168,11 @@ const Dashboard = () => {
             {tenders.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground mb-4">No tenders yet. Upload your first RFP to get started!</p>
-                <Button onClick={() => navigate("/tenders/new")}>
+            <Button variant="outline" onClick={handleSeedSampleData} disabled={seeding}>
+              <Download className="mr-2 h-4 w-4" />
+              {seeding ? "Creating..." : "Add Sample Data"}
+            </Button>
+            <Button onClick={() => navigate("/tenders/new")}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add New Tender
                 </Button>
