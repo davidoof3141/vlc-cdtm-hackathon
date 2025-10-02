@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Download, Users } from "lucide-react";
+import { ArrowLeft, Save, Download, Users, Share2, Copy, Mail } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,16 @@ import RequirementsMonitorPanel from "@/components/editor/RequirementsMonitorPan
 import DraftWriterPanel from "@/components/editor/DraftWriterPanel";
 import MarkdownIt from "markdown-it";
 import html2pdf from "html2pdf.js";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const md = new MarkdownIt();
 
@@ -22,6 +32,8 @@ const CollaborativeEditor = () => {
   const [tender, setTender] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -109,6 +121,22 @@ const CollaborativeEditor = () => {
     setContent(generatedContent);
   };
 
+  const handleCopyLink = () => {
+    const shareUrl = window.location.href;
+    navigator.clipboard.writeText(shareUrl);
+    toast.success("Link copied to clipboard!");
+  };
+
+  const handleInviteByEmail = () => {
+    if (!inviteEmail.trim()) {
+      toast.error("Please enter an email address");
+      return;
+    }
+    // UI only - no backend functionality
+    toast.success(`Invitation sent to ${inviteEmail}`);
+    setInviteEmail("");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-hero">
@@ -155,6 +183,61 @@ const CollaborativeEditor = () => {
               <Download className="mr-2 h-4 w-4" />
               {exporting ? "Exporting..." : "Export PDF"}
             </Button>
+            <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Share
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Share Tender</DialogTitle>
+                  <DialogDescription>
+                    Share this tender with your team members
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-6 py-4">
+                  <div className="space-y-2">
+                    <Label>Share Link</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={window.location.href}
+                        readOnly
+                        className="flex-1"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={handleCopyLink}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="invite-email">Invite by Email</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        id="invite-email"
+                        type="email"
+                        placeholder="colleague@company.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button 
+                        variant="outline"
+                        onClick={handleInviteByEmail}
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
+                        Send
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
