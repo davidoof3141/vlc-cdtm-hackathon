@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      tender_collaborators: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string
+          role: string
+          tender_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by: string
+          role?: string
+          tender_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string
+          role?: string
+          tender_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_collaborators_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenders: {
         Row: {
           agency: string | null
