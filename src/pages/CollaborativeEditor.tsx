@@ -111,48 +111,103 @@ const CollaborativeEditor = () => {
   };
 
   const handleRequirementClick = (requirementText: string) => {
-    if (!textareaRef.current || !content) return;
-
-    // Search for the requirement text or related keywords in the content
-    const searchTerms = requirementText.toLowerCase().split(' ').filter(word => word.length > 3);
-    let bestMatch = { index: -1, length: 0 };
-
-    // Try to find the best matching paragraph
-    const paragraphs = content.split('\n\n');
-    let currentIndex = 0;
-
-    for (const paragraph of paragraphs) {
-      const lowerParagraph = paragraph.toLowerCase();
-      let matchCount = 0;
-      
-      searchTerms.forEach(term => {
-        if (lowerParagraph.includes(term)) {
-          matchCount++;
-        }
-      });
-
-      if (matchCount > 0 && (bestMatch.index === -1 || matchCount > bestMatch.length)) {
-        bestMatch = { index: currentIndex, length: paragraph.length };
-      }
-
-      currentIndex += paragraph.length + 2; // +2 for the '\n\n'
+    if (!textareaRef.current || !content) {
+      console.log("No textarea ref or content");
+      return;
     }
 
-    if (bestMatch.index !== -1) {
+    console.log("Searching for requirement:", requirementText);
+    
+    // Extract meaningful keywords (remove common words)
+    const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must', 'can', 'that', 'this', 'these', 'those'];
+    const searchTerms = requirementText
+      .toLowerCase()
+      .split(/\W+/)
+      .filter(word => word.length > 3 && !commonWords.includes(word));
+    
+    console.log("Search terms:", searchTerms);
+
+    // Split content into sentences and paragraphs for better matching
+    const contentLower = content.toLowerCase();
+    let bestMatch = { index: -1, length: 0, score: 0 };
+
+    // Try to find exact phrase first
+    const reqLower = requirementText.toLowerCase();
+    if (contentLower.includes(reqLower)) {
+      const index = contentLower.indexOf(reqLower);
+      bestMatch = { index, length: requirementText.length, score: 100 };
+      console.log("Found exact match at index:", index);
+    } else {
+      // Search through paragraphs and sentences
+      const sections = content.split(/\n+/);
+      let currentIndex = 0;
+
+      for (const section of sections) {
+        if (section.trim().length === 0) {
+          currentIndex += section.length + 1;
+          continue;
+        }
+
+        const sectionLower = section.toLowerCase();
+        let matchScore = 0;
+        
+        // Count matching keywords
+        searchTerms.forEach(term => {
+          const regex = new RegExp(`\\b${term}\\b`, 'gi');
+          const matches = sectionLower.match(regex);
+          if (matches) {
+            matchScore += matches.length * 10;
+          }
+        });
+
+        // Bonus for multiple keyword matches in same section
+        const uniqueMatches = searchTerms.filter(term => sectionLower.includes(term)).length;
+        if (uniqueMatches > 1) {
+          matchScore += uniqueMatches * 5;
+        }
+
+        if (matchScore > bestMatch.score) {
+          bestMatch = { 
+            index: currentIndex, 
+            length: section.length,
+            score: matchScore 
+          };
+          console.log("New best match:", { section: section.substring(0, 50), score: matchScore });
+        }
+
+        currentIndex += section.length + 1;
+      }
+    }
+
+    if (bestMatch.index !== -1 && bestMatch.score > 0) {
+      console.log("Final match found:", bestMatch);
+      
       // Focus the textarea
       textareaRef.current.focus();
       
-      // Set selection to highlight the matched paragraph
+      // Set selection to highlight the matched section
       textareaRef.current.setSelectionRange(bestMatch.index, bestMatch.index + bestMatch.length);
       
-      // Scroll to the selection
-      const lineHeight = 20; // approximate line height in pixels
-      const lines = content.substring(0, bestMatch.index).split('\n').length;
-      textareaRef.current.scrollTop = Math.max(0, (lines - 5) * lineHeight);
+      // Calculate scroll position more accurately
+      const textBeforeMatch = content.substring(0, bestMatch.index);
+      const lines = textBeforeMatch.split('\n').length;
+      const textareaHeight = textareaRef.current.clientHeight;
+      const lineHeight = 24; // approximate line height for mono font
+      const totalLines = content.split('\n').length;
+      const scrollableHeight = totalLines * lineHeight - textareaHeight;
       
-      toast.success("Jumped to relevant section");
+      // Scroll to show the match in the middle of the viewport
+      const targetScroll = Math.max(0, Math.min(
+        (lines - 5) * lineHeight,
+        scrollableHeight
+      ));
+      
+      textareaRef.current.scrollTop = targetScroll;
+      
+      toast.success(`Found relevant section (${Math.round(bestMatch.score)}% match)`);
     } else {
-      toast.info("No matching content found for this requirement");
+      console.log("No match found");
+      toast.info("No matching content found for this requirement. Try writing about: " + searchTerms.slice(0, 3).join(", "));
     }
   };
 
