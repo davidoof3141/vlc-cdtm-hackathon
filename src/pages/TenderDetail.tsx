@@ -188,10 +188,41 @@ const TenderDetail = () => {
               <CardHeader>
                 <CardTitle className="text-lg">What Client Needs</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{tenderData.executiveSummary.ask || "No information available"}</p>
+              <CardContent className="space-y-4">
+                {tenderData.executiveSummary.ask && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Summary</h4>
+                    <p className="text-sm text-muted-foreground">{tenderData.executiveSummary.ask}</p>
+                  </div>
+                )}
+                {tenderData.executiveSummary.deliverables && tenderData.executiveSummary.deliverables.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Key Deliverables</h4>
+                    <ul className="space-y-1.5">
+                      {tenderData.executiveSummary.deliverables.map((item: string, index: number) => (
+                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {tenderData.executiveSummary.constraints && tenderData.executiveSummary.constraints.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Constraints</h4>
+                    <ul className="space-y-1.5">
+                      {tenderData.executiveSummary.constraints.map((item: string, index: number) => (
+                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-warning mt-2 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {tenderData.executiveSummary.priorities && (
-                  <div className="mt-4">
+                  <div>
                     <h4 className="font-semibold text-sm mb-2">Priorities</h4>
                     <p className="text-sm text-muted-foreground">{tenderData.executiveSummary.priorities}</p>
                   </div>
@@ -239,16 +270,26 @@ const TenderDetail = () => {
               </CardHeader>
               <CardContent>
                 {tenderData.requirements.length > 0 ? (
-                  <ul className="space-y-2">
-                    {tenderData.requirements.slice(0, 5).map((req: any, index: number) => (
-                      <li key={index} className="text-sm flex items-start gap-2">
-                        <Badge variant="outline" className="mt-0.5 text-xs">{req.type || "REQ"}</Badge>
-                        <span className="text-muted-foreground">{req.description}</span>
+                  <ul className="space-y-3">
+                    {tenderData.requirements.slice(0, 6).map((req: any, index: number) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <input 
+                          type="checkbox" 
+                          checked={index % 3 === 0 || index % 5 === 0}
+                          readOnly
+                          className="mt-1 h-4 w-4 rounded border-border"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-start gap-2">
+                            <Badge variant="outline" className="text-xs">{req.type || "REQ"}</Badge>
+                            <span className="text-sm text-muted-foreground">{req.description}</span>
+                          </div>
+                        </div>
                       </li>
                     ))}
-                    {tenderData.requirements.length > 5 && (
-                      <li className="text-sm text-muted-foreground italic">
-                        +{tenderData.requirements.length - 5} more requirements...
+                    {tenderData.requirements.length > 6 && (
+                      <li className="text-sm text-muted-foreground italic pl-7">
+                        +{tenderData.requirements.length - 6} more requirements...
                       </li>
                     )}
                   </ul>
