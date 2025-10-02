@@ -113,7 +113,8 @@ const TenderDetail = () => {
       ask: tender.executive_summary_ask || tender.goals || "",
       priorities: tender.priorities || "",
       deliverables: tender.deliverables || [],
-      constraints: tender.constraints || []
+      constraints: tender.constraints || [],
+      desiredStructure: tender.scope || ""
     },
 
     clientSnapshot: {
@@ -201,6 +202,12 @@ const TenderDetail = () => {
                         </li>
                       ))}
                     </ul>
+                  </div>
+                )}
+                {tenderData.executiveSummary.desiredStructure && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Desired Structure</h4>
+                    <p className="text-sm text-muted-foreground">{tenderData.executiveSummary.desiredStructure}</p>
                   </div>
                 )}
                 {tenderData.executiveSummary.priorities && (
