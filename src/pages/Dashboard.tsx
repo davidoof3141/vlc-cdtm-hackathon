@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import TenderCard from "@/components/dashboard/TenderCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface Tender {
   id: string;
@@ -18,51 +20,53 @@ export interface Tender {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
-  const [tenders] = useState<Tender[]>([
-    {
-      id: "1",
-      title: "Digital Transformation Initiative",
-      client: "Global Finance Corp",
-      deadline: "2025-11-15",
-      status: "open",
-      description: "Comprehensive digital transformation project for enterprise banking systems"
-    },
-    {
-      id: "2",
-      title: "Cloud Migration Strategy",
-      client: "Retail Solutions Ltd",
-      deadline: "2025-10-30",
-      status: "running",
-      progress: 65,
-      description: "Migration of on-premise infrastructure to cloud-native architecture"
-    },
-    {
-      id: "3",
-      title: "AI-Powered Customer Service",
-      client: "TechStart Industries",
-      deadline: "2025-10-20",
-      status: "running",
-      progress: 45,
-      description: "Implementation of AI chatbot and automated customer support system"
-    },
-    {
-      id: "4",
-      title: "Cybersecurity Assessment",
-      client: "Healthcare Alliance",
-      deadline: "2025-09-25",
-      status: "closed",
-      description: "Enterprise-wide security audit and vulnerability assessment"
-    },
-    {
-      id: "5",
-      title: "ERP System Modernization",
-      client: "Manufacturing Group",
-      deadline: "2025-11-05",
-      status: "open",
-      description: "Upgrade and modernization of legacy ERP systems"
+  const [tenders, setTenders] = useState<Tender[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTenders();
+  }, []);
+
+  const fetchTenders = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('tenders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching tenders:', error);
+        toast.error("Failed to load tenders");
+        return;
+      }
+
+      // Transform database format to component format
+      const transformedTenders: Tender[] = (data || []).map(tender => ({
+        id: tender.id,
+        title: tender.title,
+        client: tender.client_name,
+        deadline: tender.deadline,
+        status: tender.status as "open" | "running" | "closed",
+        progress: tender.progress,
+        description: tender.goals || tender.client_summary || "No description available"
+      }));
+
+      setTenders(transformedTenders);
+    } catch (error) {
+      console.error('Error in fetchTenders:', error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const openTenders = tenders.filter(t => t.status === "open");
   const runningTenders = tenders.filter(t => t.status === "running");
@@ -73,24 +77,30 @@ const Dashboard = () => {
       <DashboardHeader />
       
       <main className="container mx-auto px-6 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Tender Management
-            </h1>
-            <p className="text-muted-foreground">
-              Manage and track your RFP responses
-            </p>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground">Loading tenders...</p>
           </div>
-          <Button 
-            onClick={() => navigate("/tenders/new")}
-            size="lg"
-            className="shadow-elegant"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            Add New Tender
-          </Button>
-        </div>
+        ) : (
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                Tender Management
+              </h1>
+              <p className="text-muted-foreground">
+                Manage and track your RFP responses
+              </p>
+            </div>
+            <Button 
+              onClick={() => navigate("/tenders/new")}
+              size="lg"
+              className="shadow-elegant"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              Add New Tender
+            </Button>
+          </div>
+        )}
 
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="mb-6">
@@ -125,35 +135,57 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="all" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {tenders.map((tender) => (
-                <TenderCard key={tender.id} tender={tender} />
-              ))}
-            </div>
+            {tenders.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground mb-4">No tenders yet. Upload your first RFP to get started!</p>
+                <Button onClick={() => navigate("/tenders/new")}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add New Tender
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {tenders.map((tender) => (
+                  <TenderCard key={tender.id} tender={tender} />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="open" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {openTenders.map((tender) => (
-                <TenderCard key={tender.id} tender={tender} />
-              ))}
-            </div>
+            {openTenders.length === 0 ? (
+              <p className="text-center text-muted-foreground py-12">No open tenders</p>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {openTenders.map((tender) => (
+                  <TenderCard key={tender.id} tender={tender} />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="running" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {runningTenders.map((tender) => (
-                <TenderCard key={tender.id} tender={tender} />
-              ))}
-            </div>
+            {runningTenders.length === 0 ? (
+              <p className="text-center text-muted-foreground py-12">No running tenders</p>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {runningTenders.map((tender) => (
+                  <TenderCard key={tender.id} tender={tender} />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="closed" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {closedTenders.map((tender) => (
-                <TenderCard key={tender.id} tender={tender} />
-              ))}
-            </div>
+            {closedTenders.length === 0 ? (
+              <p className="text-center text-muted-foreground py-12">No closed tenders</p>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {closedTenders.map((tender) => (
+                  <TenderCard key={tender.id} tender={tender} />
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </main>

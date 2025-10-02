@@ -12,6 +12,7 @@ import GoNoGoDetails from "@/components/tender/GoNoGoDetails";
 import RequirementsMatrix from "@/components/tender/RequirementsMatrix";
 import EligibilityChecklist from "@/components/tender/EligibilityChecklist";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ExtractedData {
   title: string;
@@ -92,10 +93,111 @@ const NewTender = () => {
     }
   };
 
-  const handlePublish = () => {
-    // In real app, save to database
-    toast.success("Tender published successfully");
-    navigate("/tenders/1"); // Navigate to the tender detail page with same layout
+  const handlePublish = async () => {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to save tenders");
+        navigate("/auth");
+        return;
+      }
+
+      const mockData = generateMockData();
+      const aiAnalysis = generateAIAnalysis();
+
+      // Prepare tender data for database
+      const tenderData = {
+        user_id: user.id,
+        
+        // Basic Information
+        title: extractedData.title,
+        client_name: extractedData.client,
+        project_name: extractedData.title,
+        subtitle: `${extractedData.title} - AI-powered RFP response`,
+        deadline: extractedData.deadline,
+        status: 'open',
+        priority: 'high',
+        
+        // Extracted RFP Data
+        requirements: extractedData.requirements,
+        goals: extractedData.goals,
+        scope: extractedData.scope,
+        evaluation_criteria: extractedData.evaluation,
+        client_summary: extractedData.clientSummary,
+        
+        // AI Analysis Data
+        company_fit_score: aiAnalysis.companyFitScore,
+        ai_confidence: aiAnalysis.confidence,
+        capability: aiAnalysis.capability,
+        compliance: aiAnalysis.compliance,
+        profitability: aiAnalysis.profitability,
+        delivery_window: aiAnalysis.deliveryWindow,
+        why_fits: aiAnalysis.whyFits,
+        risks: aiAnalysis.risks,
+        primary_dept: aiAnalysis.primaryDept,
+        primary_dept_rationale: aiAnalysis.primaryDeptRationale,
+        co_involve: aiAnalysis.coInvolve,
+        
+        // Go/No-Go Details
+        budget: mockData.goNoGo.budget,
+        budget_type: mockData.goNoGo.budgetType,
+        target_gm: mockData.goNoGo.targetGM,
+        strategic_context: mockData.goNoGo.strategicContext,
+        past_win: mockData.goNoGo.pastWin,
+        owner: mockData.goNoGo.owner,
+        
+        // Executive Summary
+        executive_summary_ask: mockData.executiveSummary.ask,
+        priorities: mockData.executiveSummary.priorities,
+        deliverables: mockData.executiveSummary.deliverables,
+        constraints: mockData.executiveSummary.constraints,
+        
+        // Client Snapshot
+        agency: mockData.clientSnapshot.agency,
+        industry: mockData.clientSnapshot.industry,
+        company_size: mockData.clientSnapshot.size,
+        procurement: mockData.clientSnapshot.procurement,
+        mandate: mockData.clientSnapshot.mandate,
+        contact: mockData.clientSnapshot.contact,
+        past_work: mockData.clientSnapshot.pastWork,
+        
+        // Requirements Matrix
+        product_requirements: mockData.requirements,
+        
+        // Eligibility
+        eligibility_items: mockData.eligibility,
+        
+        // Evaluation
+        evaluation_weights: mockData.evaluation.criteria,
+        win_themes: mockData.evaluation.winThemes,
+        gaps: mockData.evaluation.gaps,
+        required_attachments: mockData.evaluation.attachments,
+        
+        // Metadata
+        progress: 0
+      };
+
+      // Insert into database
+      const { data: insertedTender, error } = await supabase
+        .from('tenders')
+        .insert(tenderData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving tender:', error);
+        toast.error("Failed to save tender: " + error.message);
+        return;
+      }
+
+      toast.success("Tender saved successfully");
+      navigate(`/tenders/${insertedTender.id}`);
+    } catch (error) {
+      console.error('Error in handlePublish:', error);
+      toast.error("An unexpected error occurred");
+    }
   };
 
   // Generate AI analysis data based on extracted RFP data
@@ -282,7 +384,7 @@ const NewTender = () => {
                   Cancel
                 </Button>
                 <Button onClick={handlePublish}>
-                  Publish & Share
+                  Save
                 </Button>
               </div>
             </div>

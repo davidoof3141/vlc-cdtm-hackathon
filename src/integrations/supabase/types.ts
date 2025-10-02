@@ -14,7 +14,168 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      tenders: {
+        Row: {
+          agency: string | null
+          ai_confidence: number | null
+          budget: string | null
+          budget_type: string | null
+          capability: string | null
+          client_name: string
+          client_summary: string | null
+          co_involve: string | null
+          company_fit_score: number | null
+          company_size: string | null
+          compliance: string | null
+          constraints: Json | null
+          contact: string | null
+          created_at: string
+          deadline: string | null
+          deliverables: Json | null
+          delivery_window: string | null
+          eligibility_items: Json | null
+          evaluation_criteria: string | null
+          evaluation_weights: Json | null
+          executive_summary_ask: string | null
+          gaps: Json | null
+          goals: string | null
+          id: string
+          industry: string | null
+          mandate: string | null
+          owner: string | null
+          past_win: string | null
+          past_work: Json | null
+          primary_dept: string | null
+          primary_dept_rationale: string | null
+          priorities: string | null
+          priority: string | null
+          procurement: string | null
+          product_requirements: Json | null
+          profitability: string | null
+          progress: number | null
+          project_name: string | null
+          required_attachments: Json | null
+          requirements: string | null
+          risks: Json | null
+          scope: string | null
+          status: string
+          strategic_context: string | null
+          subtitle: string | null
+          target_gm: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          why_fits: Json | null
+          win_themes: Json | null
+        }
+        Insert: {
+          agency?: string | null
+          ai_confidence?: number | null
+          budget?: string | null
+          budget_type?: string | null
+          capability?: string | null
+          client_name: string
+          client_summary?: string | null
+          co_involve?: string | null
+          company_fit_score?: number | null
+          company_size?: string | null
+          compliance?: string | null
+          constraints?: Json | null
+          contact?: string | null
+          created_at?: string
+          deadline?: string | null
+          deliverables?: Json | null
+          delivery_window?: string | null
+          eligibility_items?: Json | null
+          evaluation_criteria?: string | null
+          evaluation_weights?: Json | null
+          executive_summary_ask?: string | null
+          gaps?: Json | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          mandate?: string | null
+          owner?: string | null
+          past_win?: string | null
+          past_work?: Json | null
+          primary_dept?: string | null
+          primary_dept_rationale?: string | null
+          priorities?: string | null
+          priority?: string | null
+          procurement?: string | null
+          product_requirements?: Json | null
+          profitability?: string | null
+          progress?: number | null
+          project_name?: string | null
+          required_attachments?: Json | null
+          requirements?: string | null
+          risks?: Json | null
+          scope?: string | null
+          status?: string
+          strategic_context?: string | null
+          subtitle?: string | null
+          target_gm?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          why_fits?: Json | null
+          win_themes?: Json | null
+        }
+        Update: {
+          agency?: string | null
+          ai_confidence?: number | null
+          budget?: string | null
+          budget_type?: string | null
+          capability?: string | null
+          client_name?: string
+          client_summary?: string | null
+          co_involve?: string | null
+          company_fit_score?: number | null
+          company_size?: string | null
+          compliance?: string | null
+          constraints?: Json | null
+          contact?: string | null
+          created_at?: string
+          deadline?: string | null
+          deliverables?: Json | null
+          delivery_window?: string | null
+          eligibility_items?: Json | null
+          evaluation_criteria?: string | null
+          evaluation_weights?: Json | null
+          executive_summary_ask?: string | null
+          gaps?: Json | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          mandate?: string | null
+          owner?: string | null
+          past_win?: string | null
+          past_work?: Json | null
+          primary_dept?: string | null
+          primary_dept_rationale?: string | null
+          priorities?: string | null
+          priority?: string | null
+          procurement?: string | null
+          product_requirements?: Json | null
+          profitability?: string | null
+          progress?: number | null
+          project_name?: string | null
+          required_attachments?: Json | null
+          requirements?: string | null
+          risks?: Json | null
+          scope?: string | null
+          status?: string
+          strategic_context?: string | null
+          subtitle?: string | null
+          target_gm?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          why_fits?: Json | null
+          win_themes?: Json | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
